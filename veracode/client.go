@@ -11,10 +11,15 @@ type Client struct {
 	Client  *http.Client
 }
 
-func NewClient(region Region, httpClient *http.Client) (*Client, error) {
+func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string) (*Client, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
+	authTransport, err := NewAuthTransport(httpClient.Transport, apiKey, apiSecret)
+	if err != nil {
+		return nil, err
+	}
+	httpClient.Transport = authTransport
 
 	baseEndpoint, err := url.Parse(parseRegion(region))
 	if err != nil {
