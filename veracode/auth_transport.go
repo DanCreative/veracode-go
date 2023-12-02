@@ -40,8 +40,8 @@ func (t *AuthTransport) Client() *http.Client {
 }
 
 // NewAuthTransport takes a object that implements interface http.RoundTripper as well as a Veracode API Key and Secret and returns a new AuthTransport.
-func NewAuthTransport(rt http.RoundTripper, key, secret string) (AuthTransport, error) {
-	t := AuthTransport{
+func NewAuthTransport(rt http.RoundTripper, key, secret string) (*AuthTransport, error) {
+	t := &AuthTransport{
 		Transport: rt,
 		key:       key,
 		secret:    secret,

@@ -3,19 +3,19 @@ package veracode
 type Region int
 
 const (
-	Europe = iota
-	UnitedStates
-	Commercial
+	RegionEurope = iota
+	RegionUnitedStates
+	RegionCommercial
 )
 
 // parseRegion takes a region and returns the base URL for that region
 func parseRegion(region Region) string {
 	switch region {
-	case Europe:
+	case RegionEurope:
 		return "https://api.veracode.eu/api/authn/v2"
-	case Commercial:
+	case RegionCommercial:
 		return "https://api.veracode.com/api/authn/v2"
-	case UnitedStates:
+	case RegionUnitedStates:
 		return "https://api.veracode.us/api/authn/v2"
 	default:
 		return "https://api.veracode.com/api/authn/v2"
