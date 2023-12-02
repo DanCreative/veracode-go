@@ -4,14 +4,11 @@ import (
 	"net/http"
 	"net/url"
 	"strings"
-
-	"github.com/DanCreative/veracode-admin-plus/models"
 )
 
 type Client struct {
 	BaseURL *url.URL
 	Client  *http.Client
-	Roles   []models.Role
 }
 
 func NewClient(baseURL string, httpClient *http.Client) (*Client, error) {
