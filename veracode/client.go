@@ -11,12 +11,12 @@ type Client struct {
 	Client  *http.Client
 }
 
-func NewClient(baseURL string, httpClient *http.Client) (*Client, error) {
+func NewClient(region Region, httpClient *http.Client) (*Client, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
 
-	baseEndpoint, err := url.Parse(baseURL)
+	baseEndpoint, err := url.Parse(parseRegion(region))
 	if err != nil {
 		return nil, err
 	}
