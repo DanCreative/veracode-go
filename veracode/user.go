@@ -3,6 +3,8 @@ package veracode
 import (
 	"context"
 	"net/http"
+
+	"github.com/google/go-querystring/query"
 )
 
 // userSearchResult is required to decode the list user and search user response bodies.
@@ -37,12 +39,11 @@ type User struct {
 }
 
 type ListUserOptions struct {
-	// Enabled values should be { 0: omit, 1: false, 2:true}
-	Enabled      int
-	Page         int
-	Size         int
-	UserName     string
-	EmailAddress []string
+	Enabled      *bool    `url:"enabled,omitempty"`
+	Page         int      `url:"page,omitempty"`
+	Size         int      `url:"size,omitempty"`
+	UserName     string   `url:"user_name,omitempty"`
+	EmailAddress []string `url:"email_address,omitempty" del:","`
 }
 
 // Self returns the requesting user's details. Setting detailed to true will add certain hidden fields.
@@ -72,6 +73,13 @@ func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions
 	if err != nil {
 		return nil, nil, err
 	}
+
+	values, err := query.Values(options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.URL.RawQuery = values.Encode()
 
 	var usersResult userSearchResult
 
