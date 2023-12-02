@@ -13,7 +13,7 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
-// GetAggregatedUsers returns a list of users with each of their roles
+// !DELETE GetAggregatedUsers returns a list of users with each of their roles
 func (c *Client) GetAggregatedUsers(urlArgs url.Values) ([]*models.User, models.PageMeta, error) {
 	summaryUsers, meta, err := c.GetUsers(urlArgs)
 	if err != nil {
@@ -187,7 +187,7 @@ func (c *Client) PutPartialUser(userId string, user models.User) error {
 	return nil
 }
 
-// BulkPutPartialUsers updates multiple users async
+// !DELETE BulkPutPartialUsers updates multiple users async.
 func (c *Client) BulkPutPartialUsers(users map[string]models.User) []error {
 	logrus.WithFields(logrus.Fields{"Function": "BulkPutPartialUsers"}).Trace("Start")
 	chError := make(chan error, len(users))
