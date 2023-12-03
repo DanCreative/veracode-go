@@ -1,7 +1,9 @@
 package veracode
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"net/http"
 
 	"github.com/google/go-querystring/query"
@@ -80,8 +82,27 @@ func (i *IdentityService) Self(ctx context.Context, detailed bool) (User, *http.
 	return user, resp, err
 }
 
-// ListUsers takes a ListUserOptions and returns a list of users. For additional information please see
-// the documentation: https://docs.veracode.com/r/c_identity_list_users.
+// GetUser returns user with provided userId. Setting detailed to true will include certain hidden fields.
+func (i *IdentityService) GetUser(ctx context.Context, userId string, detailed bool) (User, *http.Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/users/"+userId, http.MethodGet, nil)
+	if err != nil {
+		return User{}, nil, err
+	}
+
+	if detailed {
+		req.URL.RawQuery = "detailed=true"
+	}
+
+	var user User
+
+	resp, err := i.Client.Do(req, &user)
+	if err != nil {
+		return User{}, resp, err
+	}
+	return user, resp, err
+}
+
+// ListUsers takes a ListUserOptions and returns a list of users. Veracode API documentation: https://docs.veracode.com/r/c_identity_list_users.
 func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions) ([]User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users", http.MethodGet, nil)
 	if err != nil {
@@ -104,8 +125,7 @@ func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions
 	return usersResult.Embedded.Users, resp, err
 }
 
-// SearchUsers takes a SearchUserOptions and returns a list of users. For additional information please see
-// the documentation: https://docs.veracode.com/r/c_identity_search_users.
+// SearchUsers takes a SearchUserOptions and returns a list of users. Veracode API documentation: https://docs.veracode.com/r/c_identity_search_users.
 func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOptions) ([]User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users/search", http.MethodGet, nil)
 	if err != nil {
@@ -126,4 +146,28 @@ func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOpt
 		return nil, resp, err
 	}
 	return usersResult.Embedded.Users, resp, err
+}
+
+// UpdateUser updates an existing Veracode user. Passing true to the isPartial parameter, will only update
+// the fields on the user that are present in the request body. API documentation: https://docs.veracode.com/r/c_identity_update_user.
+func (i *IdentityService) UpdateUser(ctx context.Context, user User, isPartial bool) (*http.Response, error) {
+	buf, err := json.Marshal(user)
+	if err != nil {
+		return nil, err
+	}
+	req, err := i.Client.NewRequest(ctx, "/users/"+user.UserId, http.MethodPut, bytes.NewBuffer(buf))
+	if err != nil {
+		return nil, err
+	}
+
+	if isPartial {
+		req.URL.RawQuery = "partial=true"
+	}
+
+	resp, err := i.Client.Do(req, nil)
+	if err != nil {
+		return resp, err
+	}
+
+	return resp, nil
 }
