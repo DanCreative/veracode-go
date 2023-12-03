@@ -35,9 +35,12 @@ type User struct {
 
 	// Below fields will only be included in /users/{id} calls
 	// BACKLOG: Add remaining fields for model as required.
-	Active bool   `json:"active"`
-	Roles  []Role `json:"roles,omitempty"`
-	Teams  []Team `json:"teams,omitempty"`
+	Active bool `json:"active"`
+	// NOTE: if the caller leaves the roles empty, the roles field will not be included in the marshalled json string when updating the user.
+	// This prevents an unnecessary 400 error as a user cannot have no roles. If the caller wishes to clear user roles, then it should explicitly
+	// set the list to contain only the role with the lowest permissions. I.e. Security Insights
+	Roles []Role `json:"roles,omitempty"`
+	Teams []Team `json:"teams"` // NOTE: if the caller leaves the teams empty, the user will be removed from all teams.
 }
 
 type ListUserOptions struct {
