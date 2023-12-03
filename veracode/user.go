@@ -39,11 +39,25 @@ type User struct {
 }
 
 type ListUserOptions struct {
-	Enabled      *bool    `url:"enabled,omitempty"`
-	Page         int      `url:"page,omitempty"`
-	Size         int      `url:"size,omitempty"`
-	UserName     string   `url:"user_name,omitempty"`
-	EmailAddress []string `url:"email_address,omitempty" del:","`
+	Detailed     string   `url:"detailed,omitempty"`              // Passing detailed will return additional hidden fields. Value should be one of: Yes or No
+	Page         int      `url:"page,omitempty"`                  // Page through the list.
+	Size         int      `url:"size,omitempty"`                  // Increase the page size.
+	UserName     string   `url:"user_name,omitempty"`             // Filter by username. You must specify the full username. The request does not support matching partial usernames.
+	EmailAddress []string `url:"email_address,omitempty" del:","` // Filter by email address(es).
+}
+
+type SearchUserOptions struct {
+	Detailed     string `url:"detailed,omitempty"`      // Passing detailed will return additional hidden fields. Value should be one of: Yes or No
+	Page         int    `url:"page,omitempty"`          // Page through the list.
+	Size         int    `url:"size,omitempty"`          // Increase the page size.
+	SearchTerm   string `url:"search_term,omitempty"`   // You can search for partial strings of the username, first name, last name, or email address.
+	RoleId       string `url:"role_id,omitempty"`       // Filter users by their role. Value should be a valid Role Id.
+	UserType     string `url:"user_type,omitempty"`     // Filter by user type. Value should be one of: user or api
+	LoginEnabled string `url:"login_enabled,omitempty"` // Filter by whether the login is enabled. Value should be one of: Yes or No
+	LoginStatus  string `url:"login_status,omitempty"`  // Filter by the login status. Value should be one of: Active, Locked or Never
+	SamlUser     string `url:"saml_user,omitempty"`     // Filter by whether the user is a SAML user or not. Value should be one of: Yes or No
+	TeamId       string `url:"team_id,omitempty"`       // Filter users by team membership. Value should be a valid Team Id.
+	ApiId        string `url:"api_id,omitempty"`        // Filter user by their API Id.
 }
 
 // Self returns the requesting user's details. Setting detailed to true will add certain hidden fields.
@@ -70,6 +84,30 @@ func (i *IdentityService) Self(ctx context.Context, detailed bool) (User, *http.
 // the documentation: https://docs.veracode.com/r/c_identity_list_users.
 func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions) ([]User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users", http.MethodGet, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	values, err := query.Values(options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.URL.RawQuery = values.Encode()
+
+	var usersResult userSearchResult
+
+	resp, err := i.Client.Do(req, &usersResult)
+	if err != nil {
+		return nil, resp, err
+	}
+	return usersResult.Embedded.Users, resp, err
+}
+
+// SearchUsers takes a SearchUserOptions and returns a list of users. For additional information please see
+// the documentation: https://docs.veracode.com/r/c_identity_search_users.
+func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOptions) ([]User, *http.Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/users/search", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
