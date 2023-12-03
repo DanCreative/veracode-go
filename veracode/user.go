@@ -62,47 +62,54 @@ type SearchUserOptions struct {
 	ApiId        string `url:"api_id,omitempty"`        // Filter user by their API Id.
 }
 
+type UpdateOptions struct {
+	Incremental *bool `url:"incremental,omitempty"` // incremental=true indicates that you are adding items to a list for an object property, such as adding users to a team.
+	Partial     *bool `url:"partial,omitempty"`     // partial=true indicates that you are updating only a subset of properties for an object.
+}
+
 // Self returns the requesting user's details. Setting detailed to true will add certain hidden fields.
-func (i *IdentityService) Self(ctx context.Context, detailed bool) (User, *http.Response, error) {
+func (i *IdentityService) Self(ctx context.Context, detailed bool) (*User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users/self", http.MethodGet, nil)
 	if err != nil {
-		return User{}, nil, err
+		return nil, nil, err
 	}
 
 	if detailed {
 		req.URL.RawQuery = "detailed=true"
 	}
 
-	var user User
+	var selfUser User
 
-	resp, err := i.Client.Do(req, &user)
+	resp, err := i.Client.Do(req, &selfUser)
 	if err != nil {
-		return User{}, resp, err
+		return nil, resp, err
 	}
-	return user, resp, err
+	return &selfUser, resp, err
 }
 
 // GetUser returns user with provided userId. Setting detailed to true will include certain hidden fields.
-func (i *IdentityService) GetUser(ctx context.Context, userId string, detailed bool) (User, *http.Response, error) {
+func (i *IdentityService) GetUser(ctx context.Context, userId string, detailed bool) (*User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users/"+userId, http.MethodGet, nil)
 	if err != nil {
-		return User{}, nil, err
+		return nil, nil, err
 	}
 
 	if detailed {
 		req.URL.RawQuery = "detailed=true"
 	}
 
-	var user User
+	var getUser User
 
-	resp, err := i.Client.Do(req, &user)
+	resp, err := i.Client.Do(req, &getUser)
 	if err != nil {
-		return User{}, resp, err
+		return nil, resp, err
 	}
-	return user, resp, err
+	return &getUser, resp, err
 }
 
-// ListUsers takes a ListUserOptions and returns a list of users. Veracode API documentation: https://docs.veracode.com/r/c_identity_list_users.
+// ListUsers takes a ListUserOptions and returns a list of users.
+//
+// Veracode API documentation: https://docs.veracode.com/r/c_identity_list_users.
 func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions) ([]User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users", http.MethodGet, nil)
 	if err != nil {
@@ -125,7 +132,9 @@ func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions
 	return usersResult.Embedded.Users, resp, err
 }
 
-// SearchUsers takes a SearchUserOptions and returns a list of users. Veracode API documentation: https://docs.veracode.com/r/c_identity_search_users.
+// SearchUsers takes a SearchUserOptions and returns a list of users.
+//
+// Veracode API documentation: https://docs.veracode.com/r/c_identity_search_users.
 func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOptions) ([]User, *http.Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/users/search", http.MethodGet, nil)
 	if err != nil {
@@ -148,26 +157,32 @@ func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOpt
 	return usersResult.Embedded.Users, resp, err
 }
 
-// UpdateUser updates an existing Veracode user. Passing true to the isPartial parameter, will only update
-// the fields on the user that are present in the request body. API documentation: https://docs.veracode.com/r/c_identity_update_user.
-func (i *IdentityService) UpdateUser(ctx context.Context, user User, isPartial bool) (*http.Response, error) {
+// UpdateUser updates a specific user and sets nulls to fields not in the request (if the database allows it) unless partial is set to true.
+// If incremental is set to true, any values in the roles or teams list will be added to the user's roles/teams instead of replacing them.
+//
+// Veracode API documentation: https://docs.veracode.com/r/c_identity_update_user.
+func (i *IdentityService) UpdateUser(ctx context.Context, user *User, options UpdateOptions) (*User, *http.Response, error) {
 	buf, err := json.Marshal(user)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
+
 	req, err := i.Client.NewRequest(ctx, "/users/"+user.UserId, http.MethodPut, bytes.NewBuffer(buf))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	if isPartial {
-		req.URL.RawQuery = "partial=true"
-	}
-
-	resp, err := i.Client.Do(req, nil)
+	values, err := query.Values(options)
 	if err != nil {
-		return resp, err
+		return nil, nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+
+	var updatedUser User
+	resp, err := i.Client.Do(req, &updatedUser)
+	if err != nil {
+		return nil, resp, err
 	}
 
-	return resp, nil
+	return &updatedUser, resp, nil
 }
