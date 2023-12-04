@@ -20,8 +20,8 @@ type userSearchResult struct {
 
 type User struct {
 	// Below fields will be included in /users and /users/search calls
-	LoginEnabled bool   `json:"login_enabled"`
-	SamlUser     bool   `json:"saml_user"` // Required when creating a new SAML user.
+	LoginEnabled *bool  `json:"login_enabled,omitempty"`
+	SamlUser     *bool  `json:"saml_user,omitempty"` // Required when creating a new SAML user.
 	EmailAddress string `json:"email_address,omitempty"`
 	FirstName    string `json:"first_name,omitempty"`
 	LastName     string `json:"last_name,omitempty"`
@@ -35,7 +35,7 @@ type User struct {
 
 	// Below fields will only be included in /users/{id} calls
 	// BACKLOG: Add remaining fields for model as required.
-	Active bool `json:"active"`
+	Active *bool `json:"active,omitempty"`
 	// NOTE: if the caller leaves the roles empty, the roles field will not be included in the marshalled json string when updating the user.
 	// This prevents an unnecessary 400 error as a user cannot have no roles. If the caller wishes to clear user roles, then it should explicitly
 	// set the list to contain only the role with the lowest permissions. I.e. Security Insights
@@ -77,6 +77,67 @@ type SearchUserOptions struct {
 type UpdateOptions struct {
 	Incremental *bool `url:"incremental,omitempty"` // incremental=true indicates that you are adding items to a list for an object property, such as adding users to a team.
 	Partial     *bool `url:"partial,omitempty"`     // partial=true indicates that you are updating only a subset of properties for an object.
+}
+
+// NewUser is a helper function that creates a new user with all of the required fields to Post to the Veracode API.
+//
+// Note that NewUser adds the "securityinsightsonly" role as the default role for the created user. The caller should update the roles
+// on the User.
+func NewUser(emailAddress, firstName, lastName string) *User {
+	isActive := true
+	return &User{
+		EmailAddress: emailAddress,
+		Active:       &isActive,
+		UserName:     emailAddress,
+		FirstName:    firstName,
+		LastName:     lastName,
+		Roles:        []Role{{RoleName: "securityinsightsonly"}},
+		UserType:     "VOSP",
+	}
+}
+
+// NewSAMLUser is a helper function that creates a new SAML user with all of the required fields to Post successfully to the Veracode API.
+//
+// Note that NewSAMLUser adds the "securityinsightsonly" role as the default role for the created user. The caller should update the roles
+// on the returned User.
+func NewSAMLUser(emailAddress, firstName, lastName, samlSubject string) *User {
+	isSAMLUser := true
+	isActive := true
+	return &User{
+		EmailAddress: emailAddress,
+		Active:       &isActive,
+		SamlUser:     &isSAMLUser,
+		SamlSubject:  samlSubject,
+		FirstName:    firstName,
+		LastName:     lastName,
+		Roles:        []Role{{RoleName: "securityinsightsonly"}},
+		UserType:     "VOSP",
+	}
+}
+
+// NewAPIUser is a helper function that creates a new service account user with all of the required fields to Post successfully to the Veracode API.
+//
+// Note the following:
+//   - NewAPIUser adds the "resultsapi" role as the default role for the created user. The caller should update the roles on the returned User.
+//   - Providing a nil value or an empty slice for parameter "teams", will add the "noteamrestrictionapi" role for the user.
+//     This role allows a Service Account to see all applications across the Veracode instance.
+func NewAPIUser(userName, emailAddress, firstName, lastName string, teams []Team) *User {
+	isActive := true
+	user := &User{
+		EmailAddress: emailAddress,
+		UserName:     userName,
+		Active:       &isActive,
+		FirstName:    firstName,
+		LastName:     lastName,
+		Roles:        []Role{{RoleName: "resultsapi"}},
+		Permissions:  []Permission{{Name: "apiUser"}},
+		Teams:        teams,
+	}
+
+	if len(teams) == 0 {
+		user.Roles = append(user.Roles, Role{RoleName: "noteamrestrictionapi"})
+	}
+	return user
 }
 
 // Self returns the requesting user's details. Setting detailed to true will add certain hidden fields.
