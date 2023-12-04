@@ -4,6 +4,7 @@ go 1.21.2
 
 require (
 	github.com/DanCreative/veracode-hmac-go v1.0.0
+	github.com/google/go-querystring v1.1.0
 	golang.org/x/time v0.5.0
 	gopkg.in/ini.v1 v1.67.0
 )
