@@ -228,3 +228,20 @@ func (i *IdentityService) CreateUser(ctx context.Context, user *User, generateAp
 
 	return &newUser, resp, nil
 }
+
+// DeleteUser deletes a user using the provided userId. This applies to both a user account and an API service account.
+//
+// Veracode API documentation:
+//   - https://docs.veracode.com/r/c_identity_delete
+func (i *IdentityService) DeleteUser(ctx context.Context, userId string) (*http.Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/users/"+userId, http.MethodDelete, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := i.Client.Do(req, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
