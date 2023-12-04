@@ -21,7 +21,7 @@ type userSearchResult struct {
 type User struct {
 	// Below fields will be included in /users and /users/search calls
 	LoginEnabled bool   `json:"login_enabled"`
-	SamlUser     bool   `json:"saml_user"`
+	SamlUser     bool   `json:"saml_user"` // Required when creating a new SAML user.
 	EmailAddress string `json:"email_address,omitempty"`
 	FirstName    string `json:"first_name,omitempty"`
 	LastName     string `json:"last_name,omitempty"`
@@ -39,8 +39,17 @@ type User struct {
 	// NOTE: if the caller leaves the roles empty, the roles field will not be included in the marshalled json string when updating the user.
 	// This prevents an unnecessary 400 error as a user cannot have no roles. If the caller wishes to clear user roles, then it should explicitly
 	// set the list to contain only the role with the lowest permissions. I.e. Security Insights
-	Roles []Role `json:"roles,omitempty"`
-	Teams []Team `json:"teams"` // NOTE: if the caller leaves the teams empty, the user will be removed from all teams.
+	Roles       []Role       `json:"roles,omitempty"`
+	Teams       []Team       `json:"teams"`                 // NOTE: if the caller leaves the teams empty, the user will be removed from all teams.
+	Permissions []Permission `json:"permissions,omitempty"` // A permission with name: "apiUser" needs to be set to create a new API user.
+
+	Title       string `json:"title,omitempty"`        // Can be set when creating a new user, but is not available when fetching a user.
+	UserType    string `json:"user_type,omitempty"`    // Required when creating a new user.
+	SamlSubject string `json:"saml_subject,omitempty"` // Required when creating a new SAML user.
+}
+
+type Permission struct {
+	Name string `json:"permission_name,omitempty"`
 }
 
 type ListUserOptions struct {
@@ -188,4 +197,34 @@ func (i *IdentityService) UpdateUser(ctx context.Context, user *User, options Up
 	}
 
 	return &updatedUser, resp, nil
+}
+
+// CreateUser creates a new user using the provided User object. Setting generateApiCredentials to true, will generate API credentials for
+// the user on creation.
+//
+// Veracode API documentation:
+//   - https://docs.veracode.com/r/c_identity_create_api
+//   - https://docs.veracode.com/r/c_identity_create_human
+func (i *IdentityService) CreateUser(ctx context.Context, user *User, generateApiCredentials bool) (*User, *http.Response, error) {
+	buf, err := json.Marshal(user)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := i.Client.NewRequest(ctx, "/users", http.MethodPost, bytes.NewBuffer(buf))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	if generateApiCredentials {
+		req.URL.RawQuery = "generate_api_creds=true"
+	}
+
+	var newUser User
+	resp, err := i.Client.Do(req, &newUser)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &newUser, resp, nil
 }
