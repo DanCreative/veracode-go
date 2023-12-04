@@ -199,6 +199,36 @@ func (i *IdentityService) UpdateUser(ctx context.Context, user *User, options Up
 	return &updatedUser, resp, nil
 }
 
+// UpdateSelf updates the requesting user and sets nulls to fields not in the request (if the database allows it) unless partial is set to true.
+// If incremental is set to true, any values in the roles or teams list will be added to the user's roles/teams instead of replacing them.
+//
+// Veracode API documentation: https://docs.veracode.com/r/c_identity_update_user.
+func (i *IdentityService) UpdateSelf(ctx context.Context, user *User, options UpdateOptions) (*User, *http.Response, error) {
+	buf, err := json.Marshal(user)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := i.Client.NewRequest(ctx, "/users/self", http.MethodPut, bytes.NewBuffer(buf))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	values, err := query.Values(options)
+	if err != nil {
+		return nil, nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+
+	var updatedUser User
+	resp, err := i.Client.Do(req, &updatedUser)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &updatedUser, resp, nil
+}
+
 // CreateUser creates a new user using the provided User object. Setting generateApiCredentials to true, will generate API credentials for
 // the user on creation.
 //
