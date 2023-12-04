@@ -66,6 +66,7 @@ func (c *Client) Do(req *http.Request, body any) (*http.Response, error) {
 	}
 	err = checkStatus(resp)
 	if err != nil {
+		err = NewVeracodeError(resp)
 		return resp, err
 	}
 
