@@ -33,15 +33,15 @@ type User struct {
 	// AccountType will be shown in the user model for /users/{id}, /users and /users/search
 	AccountType string `json:"account_type,omitempty"`
 
+	Relationship TeamRelationship `json:"relationship,omitempty"` // Only present when the user is included in the Team model.
+
 	// Below fields will only be included in /users/{id} calls
 	// BACKLOG: Add remaining fields for model as required.
 	Active *bool `json:"active,omitempty"`
-	// NOTE: if the caller leaves the roles empty, the roles field will not be included in the marshalled json string when updating the user.
-	// This prevents an unnecessary 400 error as a user cannot have no roles. If the caller wishes to clear user roles, then it should explicitly
-	// set the list to contain only the role with the lowest permissions. I.e. Security Insights
-	Roles       []Role       `json:"roles,omitempty"`
-	Teams       []Team       `json:"teams"`                 // NOTE: if the caller leaves the teams empty, the user will be removed from all teams.
-	Permissions []Permission `json:"permissions,omitempty"` // A permission with name: "apiUser" needs to be set to create a new API user.
+
+	Roles       *[]Role       `json:"roles,omitempty"`       // Be careful when setting a user's roles to an empty list. This will remove even the Administrator role.
+	Teams       *[]Team       `json:"teams,omitempty"`       // Giving a user the team admin role will require setting the Team.Relationship.Name to "ADMIN"
+	Permissions *[]Permission `json:"permissions,omitempty"` // A permission with name: "apiUser" needs to be set to create a new API user.
 
 	Title       string `json:"title,omitempty"`        // Can be set when creating a new user, but is not available when fetching a user.
 	UserType    string `json:"user_type,omitempty"`    // Required when creating a new user.
@@ -79,6 +79,30 @@ type UpdateOptions struct {
 	Partial     *bool `url:"partial,omitempty"`     // partial=true indicates that you are updating only a subset of properties for an object.
 }
 
+// If Relationship.Name is "", create custom struct where TeamRelationship is a pointer and set it to nil.
+// This will omit relationship from the marshalled json.
+//
+// If Relationship.Name is not "", flatten TeamRelationship to Relationship in User model.
+func (u *User) MarshalJSON() ([]byte, error) {
+	type Alias User
+	if u.Relationship.Name == "" {
+		return json.Marshal(&struct {
+			*Alias
+			Relationship *TeamRelationship `json:"relationship,omitempty"`
+		}{
+			Alias:        (*Alias)(u),
+			Relationship: nil,
+		})
+	}
+	return json.Marshal(&struct {
+		*Alias
+		Relationship string `json:"relationship,omitempty"`
+	}{
+		Alias:        (*Alias)(u),
+		Relationship: u.Relationship.Name,
+	})
+}
+
 // NewUser is a helper function that creates a new user with all of the required fields to Post to the Veracode API.
 //
 // Note that NewUser adds the "securityinsightsonly" role as the default role for the created user. The caller should update the roles
@@ -91,7 +115,7 @@ func NewUser(emailAddress, firstName, lastName string) *User {
 		UserName:     emailAddress,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Roles:        []Role{{RoleName: "securityinsightsonly"}},
+		Roles:        &[]Role{{RoleName: "securityinsightsonly"}},
 		UserType:     "VOSP",
 	}
 }
@@ -110,7 +134,7 @@ func NewSAMLUser(emailAddress, firstName, lastName, samlSubject string) *User {
 		SamlSubject:  samlSubject,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Roles:        []Role{{RoleName: "securityinsightsonly"}},
+		Roles:        &[]Role{{RoleName: "securityinsightsonly"}},
 		UserType:     "VOSP",
 	}
 }
@@ -129,13 +153,14 @@ func NewAPIUser(userName, emailAddress, firstName, lastName string, teams []Team
 		Active:       &isActive,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Roles:        []Role{{RoleName: "resultsapi"}},
-		Permissions:  []Permission{{Name: "apiUser"}},
-		Teams:        teams,
+		Roles:        &[]Role{{RoleName: "resultsapi"}},
+		Permissions:  &[]Permission{{Name: "apiUser"}},
+		Teams:        &teams,
 	}
 
 	if len(teams) == 0 {
-		user.Roles = append(user.Roles, Role{RoleName: "noteamrestrictionapi"})
+		newRoles := append([]Role{{RoleName: "noteamrestrictionapi"}}, *user.Roles...)
+		user.Roles = &newRoles
 	}
 	return user
 }
