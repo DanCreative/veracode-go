@@ -13,6 +13,7 @@ type Team struct {
 	TeamLegacyId int              `json:"team_legacy_id,omitempty"`
 	TeamName     string           `json:"team_name,omitempty"`
 	Relationship TeamRelationship `json:"relationship,omitempty"`
+	Users        []User           `json:"users,omitempty"`
 }
 
 type TeamRelationship struct {
@@ -83,4 +84,23 @@ func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions
 		return nil, resp, err
 	}
 	return teamsResult.Embedded.Teams, resp, err
+}
+
+// GetTeam returns a Team with the provided teamId. Setting detailed to true will include certain hidden fields.
+//
+// Veracode API documentation:
+//   - https://docs.veracode.com/r/c_identity_team_info
+func (i *IdentityService) GetTeam(ctx context.Context, teamId string) (*Team, *http.Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/teams/"+teamId, http.MethodGet, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var getTeam Team
+
+	resp, err := i.Client.Do(req, &getTeam)
+	if err != nil {
+		return nil, resp, err
+	}
+	return &getTeam, resp, err
 }

@@ -33,6 +33,8 @@ type User struct {
 	// AccountType will be shown in the user model for /users/{id}, /users and /users/search
 	AccountType string `json:"account_type,omitempty"`
 
+	Relationship TeamRelationship `json:"relationship,omitempty"` // Only present when the user is included in the Team model.
+
 	// Below fields will only be included in /users/{id} calls
 	// BACKLOG: Add remaining fields for model as required.
 	Active *bool `json:"active,omitempty"`
@@ -40,7 +42,7 @@ type User struct {
 	// This prevents an unnecessary 400 error as a user cannot have no roles. If the caller wishes to clear user roles, then it should explicitly
 	// set the list to contain only the role with the lowest permissions. I.e. Security Insights
 	Roles       []Role       `json:"roles,omitempty"`
-	Teams       []Team       `json:"teams"`                 // NOTE: if the caller leaves the teams empty, the user will be removed from all teams.
+	Teams       []Team       `json:"teams,omitempty"`
 	Permissions []Permission `json:"permissions,omitempty"` // A permission with name: "apiUser" needs to be set to create a new API user.
 
 	Title       string `json:"title,omitempty"`        // Can be set when creating a new user, but is not available when fetching a user.
@@ -77,6 +79,30 @@ type SearchUserOptions struct {
 type UpdateOptions struct {
 	Incremental *bool `url:"incremental,omitempty"` // incremental=true indicates that you are adding items to a list for an object property, such as adding users to a team.
 	Partial     *bool `url:"partial,omitempty"`     // partial=true indicates that you are updating only a subset of properties for an object.
+}
+
+// If Relationship.Name is "", create custom struct where TeamRelationship is a pointer and set it to nil.
+// This will omit relationship from the marshalled json.
+//
+// If Relationship.Name is not "", flatten TeamRelationship to Relationship in User model.
+func (u *User) MarshalJSON() ([]byte, error) {
+	type Alias User
+	if u.Relationship.Name == "" {
+		return json.Marshal(&struct {
+			*Alias
+			Relationship *TeamRelationship `json:"relationship,omitempty"`
+		}{
+			Alias:        (*Alias)(u),
+			Relationship: nil,
+		})
+	}
+	return json.Marshal(&struct {
+		*Alias
+		Relationship string `json:"relationship,omitempty"`
+	}{
+		Alias:        (*Alias)(u),
+		Relationship: u.Relationship.Name,
+	})
 }
 
 // NewUser is a helper function that creates a new user with all of the required fields to Post to the Veracode API.
