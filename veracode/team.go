@@ -1,6 +1,7 @@
 package veracode
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"net/http"
@@ -103,4 +104,28 @@ func (i *IdentityService) GetTeam(ctx context.Context, teamId string) (*Team, *h
 		return nil, resp, err
 	}
 	return &getTeam, resp, err
+}
+
+// CreateTeam creates a new team using the provided Team object.
+//
+// Veracode API documentation:
+//   - https://docs.veracode.com/r/c_identity_create_team
+func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *http.Response, error) {
+	buf, err := json.Marshal(team)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := i.Client.NewRequest(ctx, "/teams", http.MethodPost, bytes.NewBuffer(buf))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var newTeam Team
+	resp, err := i.Client.Do(req, &newTeam)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &newTeam, resp, nil
 }
