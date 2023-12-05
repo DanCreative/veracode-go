@@ -129,3 +129,20 @@ func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *h
 
 	return &newTeam, resp, nil
 }
+
+// DeleteTeam deletes a team from the Veracode API using the provided teamId.
+//
+// Veracode API documentation:
+//   - https://docs.veracode.com/r/c_identity_delete_team
+func (i *IdentityService) DeleteTeam(ctx context.Context, teamId string) (*http.Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/teams/"+teamId, http.MethodDelete, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	resp, err := i.Client.Do(req, nil)
+	if err != nil {
+		return nil, err
+	}
+	return resp, err
+}
