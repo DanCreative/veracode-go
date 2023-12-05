@@ -14,7 +14,7 @@ type Team struct {
 	TeamLegacyId int              `json:"team_legacy_id,omitempty"`
 	TeamName     string           `json:"team_name,omitempty"`
 	Relationship TeamRelationship `json:"relationship,omitempty"`
-	Users        []User           `json:"users,omitempty"`
+	Users        *[]User          `json:"users,omitempty"`
 }
 
 type TeamRelationship struct {
@@ -145,4 +145,34 @@ func (i *IdentityService) DeleteTeam(ctx context.Context, teamId string) (*http.
 		return nil, err
 	}
 	return resp, err
+}
+
+// UpdateTeam updates a specific team and sets nulls to fields not in the request (if the database allows it) unless partial is set to true.
+// If incremental is set to true, any values in the users list will be added to the teams's users instead of replacing them.
+//
+// Veracode API documentation: https://docs.veracode.com/r/c_identity_update_team
+func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options UpdateOptions) (*Team, *http.Response, error) {
+	buf, err := json.Marshal(team)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req, err := i.Client.NewRequest(ctx, "/teams/"+team.TeamId, http.MethodPut, bytes.NewBuffer(buf))
+	if err != nil {
+		return nil, nil, err
+	}
+
+	values, err := query.Values(options)
+	if err != nil {
+		return nil, nil, err
+	}
+	req.URL.RawQuery = values.Encode()
+
+	var updatedTeam Team
+	resp, err := i.Client.Do(req, &updatedTeam)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &updatedTeam, resp, nil
 }
