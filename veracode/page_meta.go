@@ -20,3 +20,9 @@ type navLinks struct {
 type link struct {
 	HrefURL string `json:"href_url"`
 }
+
+// PageOptions contains fields used to page through an endpoint as well as set page size.
+type PageOptions struct {
+	Size int `url:"size,omitempty"`
+	Page int `url:"page"`
+}

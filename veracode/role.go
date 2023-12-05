@@ -1,5 +1,12 @@
 package veracode
 
+import (
+	"context"
+	"net/http"
+
+	"github.com/google/go-querystring/query"
+)
+
 type Role struct {
 	IsApi               bool   `json:"is_api,omitempty"`
 	IsScanType          bool   `json:"is_scan_type,omitempty"`
@@ -9,4 +16,38 @@ type Role struct {
 	RoleName            string `json:"role_name,omitempty"`
 	RoleLegacyId        int    `json:"role_legacy_id,omitempty"`
 	// BACKLOG: Add remaining fields for model as required.
+}
+
+// roleSearchResult is required to decode the list of roles and search roles response bodies.
+type roleSearchResult struct {
+	Embedded struct {
+		Roles []Role `json:"roles"`
+	} `json:"_embedded"`
+	Links navLinks `json:"_links"`
+	Page  pageMeta `json:"page"`
+}
+
+// ListRoles takes a PageOptions and returns a list of roles.
+//
+// Veracode API documentation: https://docs.veracode.com/r/Listing_All_Roles_in_an_Organization_with_the_Identity_API.
+func (i *IdentityService) ListRoles(ctx context.Context, options PageOptions) ([]Role, *http.Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/roles", http.MethodGet, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	values, err := query.Values(options)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	req.URL.RawQuery = values.Encode()
+
+	var rolesResult roleSearchResult
+
+	resp, err := i.Client.Do(req, &rolesResult)
+	if err != nil {
+		return nil, resp, err
+	}
+	return rolesResult.Embedded.Roles, resp, err
 }
