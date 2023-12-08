@@ -67,7 +67,7 @@ func (t *Team) MarshalJSON() ([]byte, error) {
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_list_teams
 func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions) ([]Team, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/teams", http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -93,7 +93,7 @@ func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_team_info
 func (i *IdentityService) GetTeam(ctx context.Context, teamId string) (*Team, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/teams/"+teamId, http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams/"+teamId, http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -117,7 +117,7 @@ func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *h
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/teams", http.MethodPost, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams", http.MethodPost, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -136,7 +136,7 @@ func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *h
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_delete_team
 func (i *IdentityService) DeleteTeam(ctx context.Context, teamId string) (*http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/teams/"+teamId, http.MethodDelete, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams/"+teamId, http.MethodDelete, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -158,7 +158,7 @@ func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options Up
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/teams/"+team.TeamId, http.MethodPut, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams/"+team.TeamId, http.MethodPut, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}

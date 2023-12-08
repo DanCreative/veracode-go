@@ -50,7 +50,12 @@ func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string)
 }
 
 func (c *Client) NewRequest(ctx context.Context, endpoint string, method string, body io.Reader) (*http.Request, error) {
-	url := c.BaseURL.JoinPath(endpoint)
+	urlEndpoint, err := url.Parse(endpoint)
+	if err != nil {
+		return nil, err
+	}
+	url := c.BaseURL.ResolveReference(urlEndpoint)
+
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), body)
 	if err != nil {
 		return nil, err

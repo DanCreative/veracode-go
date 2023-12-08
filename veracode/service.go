@@ -7,4 +7,6 @@ type service struct {
 
 // You can use the Identity Service to manage the administrative configuration for your organization that is in the Veracode Platform.
 // For more information: https://docs.veracode.com/r/c_identity_intro.
+//
+// Currently supports V2 of the Identity API
 type IdentityService service

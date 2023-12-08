@@ -12,12 +12,12 @@ const (
 func parseRegion(region Region) string {
 	switch region {
 	case RegionEurope:
-		return "https://api.veracode.eu/api/authn/v2"
+		return "https://api.veracode.eu"
 	case RegionCommercial:
-		return "https://api.veracode.com/api/authn/v2"
+		return "https://api.veracode.com"
 	case RegionUnitedStates:
-		return "https://api.veracode.us/api/authn/v2"
+		return "https://api.veracode.us"
 	default:
-		return "https://api.veracode.com/api/authn/v2"
+		return "https://api.veracode.com"
 	}
 }

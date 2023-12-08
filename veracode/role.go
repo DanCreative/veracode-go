@@ -31,7 +31,7 @@ type roleSearchResult struct {
 //
 // Veracode API documentation: https://docs.veracode.com/r/Listing_All_Roles_in_an_Organization_with_the_Identity_API.
 func (i *IdentityService) ListRoles(ctx context.Context, options PageOptions) ([]Role, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/roles", http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/roles", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}

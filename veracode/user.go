@@ -167,7 +167,7 @@ func NewAPIUser(userName, emailAddress, firstName, lastName string, teams []Team
 
 // Self returns the requesting user's details. Setting detailed to true will add certain hidden fields.
 func (i *IdentityService) Self(ctx context.Context, detailed bool) (*User, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/users/self", http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users/self", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -187,7 +187,7 @@ func (i *IdentityService) Self(ctx context.Context, detailed bool) (*User, *http
 
 // GetUser returns user with provided userId. Setting detailed to true will include certain hidden fields.
 func (i *IdentityService) GetUser(ctx context.Context, userId string, detailed bool) (*User, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/users/"+userId, http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users/"+userId, http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -209,7 +209,7 @@ func (i *IdentityService) GetUser(ctx context.Context, userId string, detailed b
 //
 // Veracode API documentation: https://docs.veracode.com/r/c_identity_list_users.
 func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions) ([]User, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/users", http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -234,7 +234,7 @@ func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions
 //
 // Veracode API documentation: https://docs.veracode.com/r/c_identity_search_users.
 func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOptions) ([]User, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/users/search", http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users/search", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -265,7 +265,7 @@ func (i *IdentityService) UpdateUser(ctx context.Context, user *User, options Up
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/users/"+user.UserId, http.MethodPut, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users/"+user.UserId, http.MethodPut, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -295,7 +295,7 @@ func (i *IdentityService) UpdateSelf(ctx context.Context, user *User, options Up
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/users/self", http.MethodPut, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users/self", http.MethodPut, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -327,7 +327,7 @@ func (i *IdentityService) CreateUser(ctx context.Context, user *User, generateAp
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/users", http.MethodPost, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users", http.MethodPost, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -350,7 +350,7 @@ func (i *IdentityService) CreateUser(ctx context.Context, user *User, generateAp
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_delete
 func (i *IdentityService) DeleteUser(ctx context.Context, userId string) (*http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/users/"+userId, http.MethodDelete, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/users/"+userId, http.MethodDelete, nil)
 	if err != nil {
 		return nil, err
 	}

@@ -31,7 +31,7 @@ type buSearchResult struct {
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_list_bu
 func (i *IdentityService) ListBusinessUnits(ctx context.Context, searchTerm string) ([]BusinessUnit, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/business_units", http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -54,7 +54,7 @@ func (i *IdentityService) ListBusinessUnits(ctx context.Context, searchTerm stri
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_bu_info
 func (i *IdentityService) GetBusinessUnit(ctx context.Context, buId string) (*BusinessUnit, *http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/business_units/"+buId, http.MethodGet, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units/"+buId, http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
@@ -78,7 +78,7 @@ func (i *IdentityService) CreateBusinessUnit(ctx context.Context, bu *BusinessUn
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/business_units", http.MethodPost, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units", http.MethodPost, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -104,7 +104,7 @@ func (i *IdentityService) UpdateBusinessUnit(ctx context.Context, bu *BusinessUn
 		return nil, nil, err
 	}
 
-	req, err := i.Client.NewRequest(ctx, "/business_units/"+bu.BuId, http.MethodPut, bytes.NewBuffer(buf))
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units/"+bu.BuId, http.MethodPut, bytes.NewBuffer(buf))
 	if err != nil {
 		return nil, nil, err
 	}
@@ -129,7 +129,7 @@ func (i *IdentityService) UpdateBusinessUnit(ctx context.Context, bu *BusinessUn
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_delete_bu
 func (i *IdentityService) DeleteBusinessUnit(ctx context.Context, buId string) (*http.Response, error) {
-	req, err := i.Client.NewRequest(ctx, "/business_units/"+buId, http.MethodDelete, nil)
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units/"+buId, http.MethodDelete, nil)
 	if err != nil {
 		return nil, err
 	}
