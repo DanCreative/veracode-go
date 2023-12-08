@@ -15,6 +15,7 @@ type Team struct {
 	TeamName     string           `json:"team_name,omitempty"`
 	Relationship TeamRelationship `json:"relationship,omitempty"`
 	Users        *[]User          `json:"users,omitempty"`
+	BusinessUnit *BusinessUnit    `json:"business_unit,omitempty"`
 }
 
 type TeamRelationship struct {
