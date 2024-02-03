@@ -19,6 +19,12 @@ type Client struct {
 	Identity *IdentityService
 }
 
+type Response struct {
+	*http.Response
+	Page  pageMeta
+	Links navLinks
+}
+
 func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string) (*Client, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{}
@@ -64,26 +70,49 @@ func (c *Client) NewRequest(ctx context.Context, endpoint string, method string,
 	return req, err
 }
 
-func (c *Client) Do(req *http.Request, body any) (*http.Response, error) {
+func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
-		return resp, err
+		return newResponse(resp, nil), err
 	}
 	err = checkStatus(resp)
 	if err != nil {
 		err = NewVeracodeError(resp)
-		return resp, err
+		return newResponse(resp, nil), err
 	}
 
 	if body != nil {
 		defer resp.Body.Close()
 		err = json.NewDecoder(resp.Body).Decode(body)
 		if err != nil {
-			return resp, err
+			return newResponse(resp, nil), err
 		}
 	}
+	return newResponse(resp, body), nil
+}
 
-	return resp, nil
+func newResponse(response *http.Response, body any) *Response {
+	r := &Response{
+		Response: response,
+	}
+
+	switch value := body.(type) {
+	case *userSearchResult:
+		r.Links = value.Links
+		r.Page = value.Page
+	case *teamSearchResult:
+		r.Links = value.Links
+		r.Page = value.Page
+	case *roleSearchResult:
+		r.Links = value.Links
+		r.Page = value.Page
+	case *buSearchResult:
+		r.Links = value.Links
+		r.Page = value.Page
+	default:
+		fmt.Println("Body not matched")
+	}
+	return r
 }
 
 func checkStatus(resp *http.Response) error {

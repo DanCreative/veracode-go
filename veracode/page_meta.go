@@ -13,12 +13,13 @@ type navLinks struct {
 	First link `json:"first"`
 	Last  link `json:"last"`
 	Next  link `json:"next"`
+	Prev  link `json:"prev"`
 	Self  link `json:"self"`
 }
 
 // Link contains the URL to a milestone page.
 type link struct {
-	HrefURL string `json:"href_url"`
+	HrefURL string `json:"href"`
 }
 
 // PageOptions contains fields used to page through an endpoint as well as set page size.

@@ -30,7 +30,7 @@ type buSearchResult struct {
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_list_bu
-func (i *IdentityService) ListBusinessUnits(ctx context.Context, searchTerm string) ([]BusinessUnit, *http.Response, error) {
+func (i *IdentityService) ListBusinessUnits(ctx context.Context, searchTerm string) ([]BusinessUnit, *Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
@@ -53,7 +53,7 @@ func (i *IdentityService) ListBusinessUnits(ctx context.Context, searchTerm stri
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_bu_info
-func (i *IdentityService) GetBusinessUnit(ctx context.Context, buId string) (*BusinessUnit, *http.Response, error) {
+func (i *IdentityService) GetBusinessUnit(ctx context.Context, buId string) (*BusinessUnit, *Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units/"+buId, http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
@@ -72,7 +72,7 @@ func (i *IdentityService) GetBusinessUnit(ctx context.Context, buId string) (*Bu
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_create_bu
-func (i *IdentityService) CreateBusinessUnit(ctx context.Context, bu *BusinessUnit) (*BusinessUnit, *http.Response, error) {
+func (i *IdentityService) CreateBusinessUnit(ctx context.Context, bu *BusinessUnit) (*BusinessUnit, *Response, error) {
 	buf, err := json.Marshal(bu)
 	if err != nil {
 		return nil, nil, err
@@ -98,7 +98,7 @@ func (i *IdentityService) CreateBusinessUnit(ctx context.Context, bu *BusinessUn
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_update_bu
 //   - https://docs.veracode.com/r/c_identity_add_team_bu
-func (i *IdentityService) UpdateBusinessUnit(ctx context.Context, bu *BusinessUnit, options UpdateOptions) (*BusinessUnit, *http.Response, error) {
+func (i *IdentityService) UpdateBusinessUnit(ctx context.Context, bu *BusinessUnit, options UpdateOptions) (*BusinessUnit, *Response, error) {
 	buf, err := json.Marshal(bu)
 	if err != nil {
 		return nil, nil, err
@@ -128,7 +128,7 @@ func (i *IdentityService) UpdateBusinessUnit(ctx context.Context, bu *BusinessUn
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_delete_bu
-func (i *IdentityService) DeleteBusinessUnit(ctx context.Context, buId string) (*http.Response, error) {
+func (i *IdentityService) DeleteBusinessUnit(ctx context.Context, buId string) (*Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units/"+buId, http.MethodDelete, nil)
 	if err != nil {
 		return nil, err

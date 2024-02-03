@@ -34,8 +34,8 @@ type teamSearchResult struct {
 // ListTeamOptions contains all of the fields that can be passed as query values.
 type ListTeamOptions struct {
 	Size      int   `url:"size,omitempty"`
-	Page      int   `url:"page"`
-	AllForOrg *bool `url:"all_for_org"`
+	Page      int   `url:"page,omitempty"`
+	AllForOrg *bool `url:"all_for_org,omitempty"`
 }
 
 // If Relationship.Name is "", create custom struct where TeamRelationship is a pointer and set it to nil.
@@ -66,7 +66,7 @@ func (t *Team) MarshalJSON() ([]byte, error) {
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_list_teams
-func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions) ([]Team, *http.Response, error) {
+func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions) ([]Team, *Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
@@ -92,7 +92,7 @@ func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_team_info
-func (i *IdentityService) GetTeam(ctx context.Context, teamId string) (*Team, *http.Response, error) {
+func (i *IdentityService) GetTeam(ctx context.Context, teamId string) (*Team, *Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams/"+teamId, http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
@@ -111,7 +111,7 @@ func (i *IdentityService) GetTeam(ctx context.Context, teamId string) (*Team, *h
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_create_team
-func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *http.Response, error) {
+func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *Response, error) {
 	buf, err := json.Marshal(team)
 	if err != nil {
 		return nil, nil, err
@@ -135,7 +135,7 @@ func (i *IdentityService) CreateTeam(ctx context.Context, team *Team) (*Team, *h
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_delete_team
-func (i *IdentityService) DeleteTeam(ctx context.Context, teamId string) (*http.Response, error) {
+func (i *IdentityService) DeleteTeam(ctx context.Context, teamId string) (*Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams/"+teamId, http.MethodDelete, nil)
 	if err != nil {
 		return nil, err
@@ -152,7 +152,7 @@ func (i *IdentityService) DeleteTeam(ctx context.Context, teamId string) (*http.
 // If incremental is set to true, any values in the users list will be added to the teams's users instead of replacing them.
 //
 // Veracode API documentation: https://docs.veracode.com/r/c_identity_update_team
-func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options UpdateOptions) (*Team, *http.Response, error) {
+func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options UpdateOptions) (*Team, *Response, error) {
 	buf, err := json.Marshal(team)
 	if err != nil {
 		return nil, nil, err
