@@ -109,8 +109,6 @@ func newResponse(response *http.Response, body any) *Response {
 	case *buSearchResult:
 		r.Links = value.Links
 		r.Page = value.Page
-	default:
-		fmt.Println("Body not matched")
 	}
 	return r
 }
