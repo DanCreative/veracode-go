@@ -57,6 +57,19 @@ func main() {
 }
 ```
 
-## Features
-- Authentication using your Veracode credentials file. HMAC is handled using my [veracode-hmac-go](https://github.com/DanCreative/veracode-hmac-go) project.
-- Library currently supports most of the endpoints in the Veracode Identity API.
+## Release Notes:
+### Version ```0.2.0```:
+#### General:
+- ```Region``` is now just a type definition of ```String```. This change allows new regions to be added without requiring the package to be updated.
+- Added functionality to update the region hostname in a concurrency-safe way.
+#### Identity API v2:
+- Added a new ```RoleUser``` struct to represent the roles as part of the ```User``` aggregate struct. This change makes it more clear which role fields are available when calling different endpoints.
+### Version ```0.1.0```:
+#### General:
+- Added functionality to load credentials from the credentials file and swap between profiles.
+- HMAC is handled using my [veracode-hmac-go](https://github.com/DanCreative/veracode-hmac-go) package.
+- Calling code can add additional Transports to the HTTP client. In above example, a rate limiter is added. When the Client is created, it automatically daisy-chains the authentication Transport to the provided Transport(s).
+- The client exposes several functions to allow the calling code to implement any endpoints not already available. Namely: ```NewRequest()``` and ```Do()```.
+-  All of the page meta data for collection requests are returned in the ```Response``` struct, which wraps the ```http.Response``` struct.
+#### Identity API v2:
+- Added support for user, team, business-unit and role endpoints.
