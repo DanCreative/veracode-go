@@ -39,7 +39,7 @@ type User struct {
 	// BACKLOG: Add remaining fields for model as required.
 	Active *bool `json:"active,omitempty"`
 
-	Roles       *[]Role       `json:"roles,omitempty"`       // Be careful when setting a user's roles to an empty list. This will remove even the Administrator role.
+	Roles       *[]RoleUser   `json:"roles,omitempty"`       // Be careful when setting a user's roles to an empty list. This will remove even the Administrator role.
 	Teams       *[]Team       `json:"teams,omitempty"`       // Giving a user the team admin role will require setting the Team.Relationship.Name to "ADMIN"
 	Permissions *[]Permission `json:"permissions,omitempty"` // A permission with name: "apiUser" needs to be set to create a new API user.
 
@@ -115,7 +115,7 @@ func NewUser(emailAddress, firstName, lastName string) *User {
 		UserName:     emailAddress,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Roles:        &[]Role{{RoleName: "securityinsightsonly"}},
+		Roles:        &[]RoleUser{{RoleName: "securityinsightsonly"}},
 		UserType:     "VOSP",
 	}
 }
@@ -134,7 +134,7 @@ func NewSAMLUser(emailAddress, firstName, lastName, samlSubject string) *User {
 		SamlSubject:  samlSubject,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Roles:        &[]Role{{RoleName: "securityinsightsonly"}},
+		Roles:        &[]RoleUser{{RoleName: "securityinsightsonly"}},
 		UserType:     "VOSP",
 	}
 }
@@ -153,13 +153,13 @@ func NewAPIUser(userName, emailAddress, firstName, lastName string, teams []Team
 		Active:       &isActive,
 		FirstName:    firstName,
 		LastName:     lastName,
-		Roles:        &[]Role{{RoleName: "resultsapi"}},
+		Roles:        &[]RoleUser{{RoleName: "resultsapi"}},
 		Permissions:  &[]Permission{{Name: "apiUser"}},
 		Teams:        &teams,
 	}
 
 	if len(teams) == 0 {
-		newRoles := append([]Role{{RoleName: "noteamrestrictionapi"}}, *user.Roles...)
+		newRoles := append([]RoleUser{{RoleName: "noteamrestrictionapi"}}, *user.Roles...)
 		user.Roles = &newRoles
 	}
 	return user

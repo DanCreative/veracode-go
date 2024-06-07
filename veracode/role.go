@@ -7,6 +7,13 @@ import (
 	"github.com/google/go-querystring/query"
 )
 
+// RoleUser struct contains the fields that are return as part of the user aggregate.
+type RoleUser struct {
+	RoleDescription string `json:"role_description,omitempty"`
+	RoleId          string `json:"role_id,omitempty"`
+	RoleName        string `json:"role_name,omitempty"`
+}
+
 type Role struct {
 	IsApi               bool   `json:"is_api,omitempty"`
 	IsScanType          bool   `json:"is_scan_type,omitempty"`
