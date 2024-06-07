@@ -14,7 +14,7 @@ type Client struct {
 	BaseURL    *url.URL
 	HttpClient *http.Client
 
-	// Services used for talking to the different parts of the SpaceTraders API
+	// Services used for talking to the different parts of the Veracode API
 	common   service
 	Identity *IdentityService
 }
@@ -35,7 +35,7 @@ func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string)
 	}
 	httpClient.Transport = authTransport
 
-	baseEndpoint, err := url.Parse(parseRegion(region))
+	baseEndpoint, err := url.Parse(string(region))
 	if err != nil {
 		return nil, err
 	}
