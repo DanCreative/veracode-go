@@ -103,6 +103,14 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	})
 }
 
+func (r *userSearchResult) GetLinks() navLinks {
+	return r.Links
+}
+
+func (r *userSearchResult) GetPageMeta() pageMeta {
+	return r.Page
+}
+
 // NewUser is a helper function that creates a new user with all of the required fields to Post to the Veracode API.
 //
 // Note that NewUser adds the "securityinsightsonly" role as the default role for the created user. The caller should update the roles
@@ -202,7 +210,7 @@ func (i *IdentityService) GetUser(ctx context.Context, userId string, detailed b
 	if err != nil {
 		return nil, resp, err
 	}
-	return &getUser, resp, err
+	return &getUser, resp, nil
 }
 
 // ListUsers takes a ListUserOptions and returns a list of users.

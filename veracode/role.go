@@ -34,6 +34,14 @@ type roleSearchResult struct {
 	Page  pageMeta `json:"page"`
 }
 
+func (r *roleSearchResult) GetLinks() navLinks {
+	return r.Links
+}
+
+func (r *roleSearchResult) GetPageMeta() pageMeta {
+	return r.Page
+}
+
 // ListRoles takes a PageOptions and returns a list of roles.
 //
 // Veracode API documentation: https://docs.veracode.com/r/Listing_All_Roles_in_an_Organization_with_the_Identity_API.

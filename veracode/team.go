@@ -177,3 +177,11 @@ func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options Up
 
 	return &updatedTeam, resp, nil
 }
+
+func (r *teamSearchResult) GetLinks() navLinks {
+	return r.Links
+}
+
+func (r *teamSearchResult) GetPageMeta() pageMeta {
+	return r.Page
+}

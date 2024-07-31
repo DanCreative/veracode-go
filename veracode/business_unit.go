@@ -26,6 +26,14 @@ type buSearchResult struct {
 	Page  pageMeta `json:"page"`
 }
 
+func (r *buSearchResult) GetLinks() navLinks {
+	return r.Links
+}
+
+func (r *buSearchResult) GetPageMeta() pageMeta {
+	return r.Page
+}
+
 // ListBusinessUnits returns a list of business units. A name can optionally be provided to search for BUs by name.
 //
 // Veracode API documentation:
