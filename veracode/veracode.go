@@ -17,14 +17,31 @@ type Client struct {
 	HttpClient *http.Client
 
 	// Services used for talking to the different parts of the Veracode API
-	common   service
+	common service
+
+	// You can use the Identity Service to manage the administrative configuration for your organization that is in the Veracode Platform.
+	// For more information: https://docs.veracode.com/r/c_identity_intro.
+	//
+	// Currently supports V2 of the Identity API
 	Identity *IdentityService
+	// You can use the Applications API to quickly access information about your Veracode applications.
+	// For more information, review the documentation: https://docs.veracode.com/r/c_apps_intro
+	//
+	// Currently supports V1 of the Applications API
+	Application *ApplicationService
 }
 
 type Response struct {
 	*http.Response
 	Page  pageMeta
 	Links navLinks
+}
+
+// Any struct that is used to unmarshal a collection of entities, needs to implement the CollectionResult interface in order for the page meta and navigational links
+// to be set in the Response object.
+type CollectionResult interface {
+	GetLinks() navLinks
+	GetPageMeta() pageMeta
 }
 
 func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string) (*Client, error) {
@@ -53,6 +70,7 @@ func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string)
 
 	c.common.Client = c
 	c.Identity = (*IdentityService)(&c.common)
+	c.Application = (*ApplicationService)(&c.common)
 
 	return c, nil
 }
@@ -76,6 +94,8 @@ func (c *Client) NewRequest(ctx context.Context, endpoint string, method string,
 	return req, err
 }
 
+// Do is a helper method that executes the provided http.Request and marshals the JSON response body
+// into either the provided any object or into an error if an error occurred.
 func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 	resp, err := c.HttpClient.Do(req)
 	if err != nil {
@@ -116,20 +136,17 @@ func newResponse(response *http.Response, body any) *Response {
 		Response: response,
 	}
 
-	switch value := body.(type) {
-	case *userSearchResult:
-		r.Links = value.Links
-		r.Page = value.Page
-	case *teamSearchResult:
-		r.Links = value.Links
-		r.Page = value.Page
-	case *roleSearchResult:
-		r.Links = value.Links
-		r.Page = value.Page
-	case *buSearchResult:
-		r.Links = value.Links
-		r.Page = value.Page
+	if body == nil {
+		return r
 	}
+
+	// if the body object provided implements the CollectionResult interface, meaning that it is a collection of entities, set the Links and Page Meta on the
+	// Response object.
+	if value, ok := body.(CollectionResult); ok {
+		r.Links = value.GetLinks()
+		r.Page = value.GetPageMeta()
+	}
+
 	return r
 }
 

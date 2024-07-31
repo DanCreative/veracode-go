@@ -10,3 +10,9 @@ type service struct {
 //
 // Currently supports V2 of the Identity API
 type IdentityService service
+
+// You can use the Applications API to quickly access information about your Veracode applications.
+// For more information, review the documentation: https://docs.veracode.com/r/c_apps_intro
+//
+// Currently supports V1 of the Applications API
+type ApplicationService service
