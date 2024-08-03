@@ -3,8 +3,6 @@ package veracode
 import (
 	"context"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 type ListCustomFieldOptions struct {
@@ -39,13 +37,7 @@ func (a *ApplicationService) ListCustomFields(ctx context.Context, options ListC
 	if err != nil {
 		return nil, nil, err
 	}
-
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var results appCustomFieldSearchResult
 
