@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 // userSearchResult is required to decode the list user and search user response bodies.
@@ -222,12 +220,7 @@ func (i *IdentityService) ListUsers(ctx context.Context, options ListUserOptions
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var usersResult userSearchResult
 
@@ -246,13 +239,7 @@ func (i *IdentityService) SearchUsers(ctx context.Context, options SearchUserOpt
 	if err != nil {
 		return nil, nil, err
 	}
-
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var usersResult userSearchResult
 
@@ -278,11 +265,7 @@ func (i *IdentityService) UpdateUser(ctx context.Context, user *User, options Up
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var updatedUser User
 	resp, err := i.Client.Do(req, &updatedUser)
@@ -308,11 +291,7 @@ func (i *IdentityService) UpdateSelf(ctx context.Context, user *User, options Up
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var updatedUser User
 	resp, err := i.Client.Do(req, &updatedUser)

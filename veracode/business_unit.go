@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 type BusinessUnit struct {
@@ -117,11 +115,7 @@ func (i *IdentityService) UpdateBusinessUnit(ctx context.Context, bu *BusinessUn
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var updatedBu BusinessUnit
 	resp, err := i.Client.Do(req, &updatedBu)

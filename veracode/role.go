@@ -3,8 +3,6 @@ package veracode
 import (
 	"context"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 // RoleUser struct contains the fields that are return as part of the user aggregate.
@@ -51,12 +49,7 @@ func (i *IdentityService) ListRoles(ctx context.Context, options PageOptions) ([
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var rolesResult roleSearchResult
 

@@ -5,8 +5,6 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
-
-	"github.com/google/go-querystring/query"
 )
 
 type Team struct {
@@ -72,12 +70,7 @@ func (i *IdentityService) ListTeams(ctx context.Context, options ListTeamOptions
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var teamsResult teamSearchResult
 
@@ -163,11 +156,7 @@ func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options Up
 		return nil, nil, err
 	}
 
-	values, err := query.Values(options)
-	if err != nil {
-		return nil, nil, err
-	}
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var updatedTeam Team
 	resp, err := i.Client.Do(req, &updatedTeam)
