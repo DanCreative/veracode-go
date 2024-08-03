@@ -54,7 +54,7 @@ func main() {
 ```
 
 ## Release Notes:
-### Version ```0.3.0```
+### Version ```0.4.0```
 #### General:
 - Moved Module https://github.com/DanCreative/veracode-hmac-go into this module as a package (finally).
 - Added a LICENSE file to the repository. This project is going to be using the MIT license.
@@ -74,6 +74,15 @@ func main() {
 - Added CRUD support for Applications.
 - Added CRUD support for Collections.
 - Added function to get a list of the custom fields.
+
+### Version ```0.3.0```:
+<details>
+<summary>See Details</summary>
+
+#### General:
+- Added functionality to get different profiles from the credentials file.
+</details>
+
 
 ### Version ```0.2.0```:
 <details>
