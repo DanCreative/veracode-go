@@ -4,16 +4,13 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/http"
-	"time"
-
-	"github.com/google/go-querystring/query"
 )
 
 type BusinessCriticality string
 type ScanType string
 type PolicyCompliance string
+type ScanStatus string
 
 const (
 	VERY_HIGH BusinessCriticality = "VERY_HIGH"
@@ -32,6 +29,51 @@ const (
 	NOT_ASSESSED     PolicyCompliance = "NOT_ASSESSED"
 	VENDOR_REVIEW    PolicyCompliance = "VENDOR_REVIEW"
 	DETERMINING      PolicyCompliance = "DETERMINING"
+
+	CREATED                                ScanStatus = "CREATED"
+	UNPUBLISHED                            ScanStatus = "UNPUBLISHED"
+	DELETED                                ScanStatus = "DELETED"
+	PARTIAL_PUBLISH                        ScanStatus = "PARTIAL_PUBLISH"
+	PARTIAL_UNPUBLISH                      ScanStatus = "PARTIAL_UNPUBLISH"
+	INCOMPLETE                             ScanStatus = "INCOMPLETE"
+	SCAN_SUBMITTED                         ScanStatus = "SCAN_SUBMITTED"
+	IN_QUEUE                               ScanStatus = "IN_QUEUE"
+	STOPPING                               ScanStatus = "STOPPING"
+	PAUSING                                ScanStatus = "PAUSING"
+	IN_PROGRESS                            ScanStatus = "IN_PROGRESS"
+	ANALYSIS_ERRORS                        ScanStatus = "ANALYSIS_ERRORS"
+	SCAN_CANCELED                          ScanStatus = "SCAN_CANCELED"
+	INTERNAL_REVIEW                        ScanStatus = "INTERNAL_REVIEW"
+	VERIFYING_RESULTS                      ScanStatus = "VERIFYING_RESULTS"
+	SUBMITTED_FOR_NTO_PRE_SCAN             ScanStatus = "SUBMITTED_FOR_NTO_PRE_SCAN"
+	SUBMITTED_FOR_DYNAMIC_PRE_SCAN         ScanStatus = "SUBMITTED_FOR_DYNAMIC_PRE_SCAN"
+	PRE_SCAN_FAILED                        ScanStatus = "PRE_SCAN_FAILED"
+	READY_TO_SUBMIT                        ScanStatus = "READY_TO_SUBMIT"
+	NTO_PENDING_SUBMISSION                 ScanStatus = "NTO_PENDING_SUBMISSION"
+	PRE_SCAN_COMPLETE                      ScanStatus = "PRE_SCAN_COMPLETE"
+	MODULE_SELECTION_REQUIRED              ScanStatus = "MODULE_SELECTION_REQUIRED"
+	PENDING_VENDOR_ACCEPTANCE              ScanStatus = "PENDING_VENDOR_ACCEPTANCE"
+	SHOW_OSRDB                             ScanStatus = "SHOW_OSRDB"
+	PUBLISHED                              ScanStatus = "PUBLISHED"
+	PUBLISHED_TO_VENDOR                    ScanStatus = "PUBLISHED_TO_VENDOR"
+	PUBLISHED_TO_ENTERPRISE                ScanStatus = "PUBLISHED_TO_ENTERPRISE"
+	PENDING_ACCOUNT_APPROVAL               ScanStatus = "PENDING_ACCOUNT_APPROVAL"
+	PENDING_LEGAL_AGREEMENT                ScanStatus = "PENDING_LEGAL_AGREEMENT"
+	SCAN_IN_PROGRESS                       ScanStatus = "SCAN_IN_PROGRESS"
+	SCAN_IN_PROGRESS_PARTIAL_RESULTS_READY ScanStatus = "SCAN_IN_PROGRESS_PARTIAL_RESULTS_READY"
+	PROMOTE_IN_PROGRESS                    ScanStatus = "PROMOTE_IN_PROGRESS"
+	PRE_SCAN_CANCELED                      ScanStatus = "PRE_SCAN_CANCELED"
+	NTO_PRE_SCAN_CANCELED                  ScanStatus = "NTO_PRE_SCAN_CANCELED"
+	SCAN_HELD_APPROVAL                     ScanStatus = "SCAN_HELD_APPROVAL"
+	SCAN_HELD_LOGIN_INSTRUCTIONS           ScanStatus = "SCAN_HELD_LOGIN_INSTRUCTIONS"
+	SCAN_HELD_LOGIN                        ScanStatus = "SCAN_HELD_LOGIN"
+	SCAN_HELD_INSTRUCTIONS                 ScanStatus = "SCAN_HELD_INSTRUCTIONS"
+	SCAN_HELD_HOLDS_FINISHED               ScanStatus = "SCAN_HELD_HOLDS_FINISHED"
+	SCAN_REQUESTED                         ScanStatus = "SCAN_REQUESTED"
+	TIMEFRAMEPENDING_ID                    ScanStatus = "TIMEFRAMEPENDING_ID"
+	PAUSED_ID                              ScanStatus = "PAUSED_ID"
+	STATIC_VALIDATING_UPLOAD               ScanStatus = "STATIC_VALIDATING_UPLOAD"
+	PUBLISHED_TO_ENTERPRISEINT             ScanStatus = "PUBLISHED_TO_ENTERPRISEINT"
 )
 
 type Application struct {
@@ -84,65 +126,40 @@ type ApplicationBusinessOwner struct {
 }
 
 // ListApplicationOptions contains all of the fields that can be passed as query values when calling the ListApplications method.
-// NOTE: fields policy and scan_status are currently not available.
+// NOTE: the policy field is not currently included.
 type ListApplicationOptions struct {
-	Page                         int              `url:"page,omitempty"`
-	Size                         int              `url:"size,omitempty"`
-	Name                         string           `url:"name,omitempty"`                            // Filter Applications by Name (Not an exact match). Documentation Reference: https://docs.veracode.com/r/List_Applications_By_Name
-	Tag                          string           `url:"tag,omitempty"`                             // Documentation Reference: https://docs.veracode.com/r/r_applications_any_tag and https://docs.veracode.com/r/r_applications_tag
-	Team                         string           `url:"team,omitempty"`                            // Filter the Applications by team name.
-	LegacyId                     int              `url:"legacy_id,omitempty"`                       // Documentation Reference: https://docs.veracode.com/r/r_applications_info
-	ScanType                     ScanType         `url:"scan_type,omitempty"`                       // The valid scan_type values are STATIC, DYNAMIC and, for Manual Penetration Testing (MPT), MANUAL. Documentation Reference: https://docs.veracode.com/r/r_applications_scan_type
-	BusinessUnit                 string           `url:"business_unit,omitempty"`                   // Return a list of Application Profiles that belong to the BU with this name. Documentation Reference: https://docs.veracode.com/r/r_applications_bu
-	PolicyGuid                   string           `url:"policy_guid,omitempty"`                     // Filter Applications by the Policy that is assigned to them.
-	PolicyCompliance             PolicyCompliance `url:"policy_compliance,omitempty"`               //Documentation Reference: https://docs.veracode.com/r/r_applications_compliance
-	SortByCustomFieldName        string           `url:"sort_by_custom_field_name,omitempty"`       // Custom field name on which to sort.
-	policyComplianceCheckedAfter string           `url:"policy_compliance_checked_after,omitempty"` // Documentation Reference: https://docs.veracode.com/r/Listing_Applications_by_Last_Policy_Evaluation_Date_with_the_Applications_API
-	modifiedAfter                string           `url:"modified_after,omitempty"`                  // Documentation Reference: https://docs.veracode.com/r/r_applications_modified_date
-	customFieldNames             []string         `url:"custom_field_names,omitempty"`
-	customFieldValues            []string         `url:"custom_field_values,omitempty"`
-}
+	Page                  int              `url:"page,omitempty"`
+	Size                  int              `url:"size,omitempty"`
+	Name                  string           `url:"name,omitempty"`                      // Filter Applications by Name (Not an exact match). Documentation Reference: https://docs.veracode.com/r/List_Applications_By_Name
+	Tag                   string           `url:"tag,omitempty"`                       // Documentation Reference: https://docs.veracode.com/r/r_applications_any_tag and https://docs.veracode.com/r/r_applications_tag
+	Team                  string           `url:"team,omitempty"`                      // Filter the Applications by team name.
+	LegacyId              int              `url:"legacy_id,omitempty"`                 // Documentation Reference: https://docs.veracode.com/r/r_applications_info
+	ScanType              ScanType         `url:"scan_type,omitempty"`                 // The valid scan_type values are STATIC, DYNAMIC and, for Manual Penetration Testing (MPT), MANUAL. Documentation Reference: https://docs.veracode.com/r/r_applications_scan_type
+	ScanStatus            []ScanStatus     `url:"scan_status,omitempty"`               // Filter Applications by a list of scan statuses.
+	BusinessUnit          string           `url:"business_unit,omitempty"`             // Return a list of Application Profiles that belong to the BU with this name. Documentation Reference: https://docs.veracode.com/r/r_applications_bu
+	PolicyGuid            string           `url:"policy_guid,omitempty"`               // Filter Applications by the Policy that is assigned to them.
+	PolicyCompliance      PolicyCompliance `url:"policy_compliance,omitempty"`         // Documentation Reference: https://docs.veracode.com/r/r_applications_compliance
+	SortByCustomFieldName string           `url:"sort_by_custom_field_name,omitempty"` // Custom field name on which to sort.
 
-// listApplicationOptions is hidden from the calling code, but exports all of the attributes for marshalling within this module.
-// This was done because there are a couple of query fields where the value needs to be structured in a specific way. To avoid
-// possible API errors caused by these fields, the ListApplicationOptions uses setters to ensure the structure is correct and does
-// not export whose fields.
-type listApplicationOptions struct {
-	Page                         int              `url:"page,omitempty"`
-	Size                         int              `url:"size,omitempty"`
-	Name                         string           `url:"name,omitempty"`
-	Tag                          string           `url:"tag,omitempty"`
-	Team                         string           `url:"team,omitempty"`
-	LegacyId                     int              `url:"legacy_id,omitempty"`
-	ScanType                     ScanType         `url:"scan_type,omitempty"`
-	BusinessUnit                 string           `url:"business_unit,omitempty"`
-	SortByCustomFieldName        string           `url:"sort_by_custom_field_name,omitempty"`
-	PolicyGuid                   string           `url:"policy_guid,omitempty"`
-	PolicyCompliance             PolicyCompliance `url:"policy_compliance,omitempty"`
-	PolicyComplianceCheckedAfter string           `url:"policy_compliance_checked_after,omitempty"`
-	ModifiedAfter                string           `url:"modified_after,omitempty"`
-	CustomFieldNames             []string         `url:"custom_field_names,omitempty"`
-	CustomFieldValues            []string         `url:"custom_field_values,omitempty"`
-}
+	// You can use the Applications REST API to list the application profiles that have had an event that triggered a policy evaluation after a specific date.
+	// The events that trigger policy evaluations are scans, approved mitigations, new component vulnerability releases, and policy changes.
+	//
+	// The value needs to be in format: 2006-01-02.
+	//
+	// Documentation Reference: https://docs.veracode.com/r/Listing_Applications_by_Last_Policy_Evaluation_Date_with_the_Applications_API
+	PolicyComplianceCheckedAfter string `url:"policy_compliance_checked_after,omitempty"`
 
-func newInternalListApplicationOptions(options ListApplicationOptions) listApplicationOptions {
-	return listApplicationOptions{
-		Page:                         options.Page,
-		Size:                         options.Size,
-		Name:                         options.Name,
-		Tag:                          options.Tag,
-		Team:                         options.Team,
-		LegacyId:                     options.LegacyId,
-		ScanType:                     options.ScanType,
-		BusinessUnit:                 options.BusinessUnit,
-		SortByCustomFieldName:        options.SortByCustomFieldName,
-		PolicyGuid:                   options.PolicyGuid,
-		PolicyCompliance:             options.PolicyCompliance,
-		PolicyComplianceCheckedAfter: options.policyComplianceCheckedAfter,
-		ModifiedAfter:                options.modifiedAfter,
-		CustomFieldNames:             options.customFieldNames,
-		CustomFieldValues:            options.customFieldValues,
-	}
+	// Send the following request to return the list of application profiles modified after a specific date.
+	//
+	// The value needs to be in format: 2006-01-02.
+	//
+	// Documentation Reference: https://docs.veracode.com/r/r_applications_modified_date
+	ModifiedAfter string `url:"modified_after,omitempty"`
+
+	// CustomFieldNames and CustomFieldValues need to both be set together.
+	// You can use the AddCustomFieldOption method to set/update these fields.
+	CustomFieldNames  []string `url:"custom_field_names,omitempty"`
+	CustomFieldValues []string `url:"custom_field_values,omitempty"`
 }
 
 // AddCustomFieldOption sets the customFieldName and customFieldValue attributes on the ListApplicationOptions.
@@ -150,32 +167,17 @@ func newInternalListApplicationOptions(options ListApplicationOptions) listAppli
 //
 // Documentation Reference: https://docs.veracode.com/r/r_applications_custom_field
 func (l *ListApplicationOptions) AddCustomFieldOption(customFieldName, customFieldValue string) {
-	if len(l.customFieldNames) < 1 || l.customFieldNames == nil {
-		l.customFieldNames = []string{customFieldName}
+	if len(l.CustomFieldNames) < 1 || l.CustomFieldNames == nil {
+		l.CustomFieldNames = []string{customFieldName}
 	} else {
-		l.customFieldNames = append(l.customFieldNames, customFieldName)
+		l.CustomFieldNames = append(l.CustomFieldNames, customFieldName)
 	}
 
-	if len(l.customFieldValues) < 1 || l.customFieldValues == nil {
-		l.customFieldValues = []string{customFieldValue}
+	if len(l.CustomFieldValues) < 1 || l.CustomFieldValues == nil {
+		l.CustomFieldValues = []string{customFieldValue}
 	} else {
-		l.customFieldValues = append(l.customFieldValues, customFieldName)
+		l.CustomFieldValues = append(l.CustomFieldValues, customFieldName)
 	}
-	fmt.Printf("%v\n", l)
-}
-
-// SetPolicyComplianceCheckedAfterOption sets the policyComplianceCheckedAfter attribute on the ListApplicationOptions.
-// You can use the Applications REST API to list the application profiles that have had an event that triggered a policy evaluation after a specific date.
-// The events that trigger policy evaluations are scans, approved mitigations, new component vulnerability releases, and policy changes.
-// Time needs to be formatted in format: 2006-01-02
-//
-// Documentation Reference: https://docs.veracode.com/r/Listing_Applications_by_Last_Policy_Evaluation_Date_with_the_Applications_API
-func (l *ListApplicationOptions) SetPolicyComplianceCheckedAfterOption(date time.Time) {
-	l.policyComplianceCheckedAfter = date.Format("2006-01-02")
-}
-
-func (l *ListApplicationOptions) SetPolicyModifiedAfterOption(date time.Time) {
-	l.modifiedAfter = date.Format("2006-01-02")
 }
 
 type applicationSearchResult struct {
@@ -283,12 +285,7 @@ func (a *ApplicationService) ListApplications(ctx context.Context, options ListA
 		return nil, nil, err
 	}
 
-	values, err := query.Values(newInternalListApplicationOptions(options))
-	if err != nil {
-		return nil, nil, err
-	}
-
-	req.URL.RawQuery = values.Encode()
+	req.URL.RawQuery = QueryEncode(options)
 
 	var result applicationSearchResult
 
