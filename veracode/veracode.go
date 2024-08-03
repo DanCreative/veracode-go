@@ -9,6 +9,7 @@ import (
 	"net/url"
 	"strings"
 	"sync"
+	"time"
 )
 
 type Client struct {
@@ -48,11 +49,9 @@ func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string)
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
-	authTransport, err := NewAuthTransport(httpClient.Transport, apiKey, apiSecret)
-	if err != nil {
-		return nil, err
-	}
-	httpClient.Transport = authTransport
+
+	// Wrap the transport provided in the http.Client with the veracodeTransport (which will handle rate limiting and authentication)
+	httpClient.Transport = newTransport(httpClient.Transport, apiKey, apiSecret, time.Minute*1, 500)
 
 	baseEndpoint, err := url.Parse(string(region))
 	if err != nil {
@@ -101,6 +100,8 @@ func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 	if err != nil {
 		return newResponse(resp, nil), err
 	}
+	defer resp.Body.Close()
+
 	err = checkStatus(resp)
 	if err != nil {
 		err = NewVeracodeError(resp)
@@ -108,7 +109,6 @@ func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 	}
 
 	if body != nil {
-		defer resp.Body.Close()
 		err = json.NewDecoder(resp.Body).Decode(body)
 		if err != nil {
 			return newResponse(resp, nil), err
@@ -124,7 +124,7 @@ func (c *Client) SetBaseURL(region Region) error {
 
 	new, err := url.Parse(string(region))
 	if err != nil {
-		return fmt.Errorf("error occured while trying to parse new base URL: %s", region)
+		return fmt.Errorf("error occurred while trying to parse new base URL: %s", region)
 	}
 
 	c.baseURL = new
@@ -152,7 +152,7 @@ func newResponse(response *http.Response, body any) *Response {
 
 func checkStatus(resp *http.Response) error {
 	if resp.StatusCode < 200 || resp.StatusCode > 299 {
-		return fmt.Errorf("error has occured during API Call: %d", resp.StatusCode)
+		return fmt.Errorf("error has occurred during API Call: %d", resp.StatusCode)
 	}
 	return nil
 }
