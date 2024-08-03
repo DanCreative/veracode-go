@@ -33,15 +33,11 @@ func main() {
 	key, secret, err := veracode.LoadVeracodeCredentials()
 	check(err)
 
-	rateTransport, err := veracode.NewRateTransport(nil, time.Second, 10)
-	check(err)
-
 	jar, err := cookiejar.New(&cookiejar.Options{})
 	check(err)
 
 	httpClient := &http.Client{
-		Transport: rateTransport,
-		Jar:       jar,
+		Jar: jar,
 	}
 
 	client, err := veracode.NewClient(veracode.RegionEurope, httpClient, key, secret)
@@ -58,13 +54,46 @@ func main() {
 ```
 
 ## Release Notes:
+### Version ```0.3.0```
+#### General:
+- Moved Module https://github.com/DanCreative/veracode-hmac-go into this module as a package (finally).
+- Added a LICENSE file to the repository. This project is going to be using the MIT license.
+- Merged the rate limiting and authentication transports into a single struct and added a default implementation.
+- All collection-of-entity structs now need to implement the CollectionResult interface in order to get the navigational links and page meta details:
+	```go
+	type CollectionResult interface {
+		GetLinks() navLinks
+		GetPageMeta() pageMeta
+	}
+	```
+	This resolves a previous issue where all collection structs needed to be added to a switch in order to get this information.
+- Added support for unmarshalling all of the different error models that can be returned by the APIs.
+- Fixed an issue with the Veracode API not supporting "+" as an encoding for spaces in the query string. See the veracode/query.go file for more information.
+
+#### Application API v1:
+- Added CRUD support for Applications.
+- Added CRUD support for Collections.
+- Added function to get a list of the custom fields.
+
 ### Version ```0.2.0```:
+<details>
+<summary>See Details</summary>
+
 #### General:
 - ```Region``` is now just a type definition of ```String```. This change allows new regions to be added without requiring the package to be updated.
 - Added functionality to update the region hostname in a concurrency-safe way.
 #### Identity API v2:
 - Added a new ```RoleUser``` struct to represent the roles as part of the ```User``` aggregate struct. This change makes it more clear which role fields are available when calling different endpoints.
+
+</details>
+
+
+
+
 ### Version ```0.1.0```:
+<details>
+<summary>See Details</summary>
+
 #### General:
 - Added functionality to load credentials from the credentials file and swap between profiles.
 - HMAC is handled using my [veracode-hmac-go](https://github.com/DanCreative/veracode-hmac-go) package.
@@ -73,3 +102,5 @@ func main() {
 -  All of the page meta data for collection requests are returned in the ```Response``` struct, which wraps the ```http.Response``` struct.
 #### Identity API v2:
 - Added support for user, team, business-unit and role endpoints.
+
+</details>
