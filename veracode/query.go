@@ -2,6 +2,7 @@ package veracode
 
 import (
 	"net/url"
+	"reflect"
 	"strings"
 
 	"github.com/gorilla/schema"
@@ -32,5 +33,16 @@ func QueryEncode(options any) string {
 func newEncoder() *schema.Encoder {
 	r := schema.NewEncoder()
 	r.SetAliasTag("url")
+
+	// Allows for asc/desc individual fields
+	r.RegisterEncoder(SortQueryField{}, func(v reflect.Value) string {
+		s := v.FieldByName("Name").String()
+
+		if v.FieldByName("IsDesc").Bool() {
+			s += ",desc"
+		}
+
+		return s
+	})
 	return r
 }
