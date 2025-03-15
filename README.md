@@ -66,6 +66,7 @@ func main() {
 ### Version ```0.4.0```
 <details>
 <summary>See Details</summary>
+
 #### General:
 - Moved Module https://github.com/DanCreative/veracode-hmac-go into this module as a package (finally).
 - Added a LICENSE file to the repository. This project is going to be using the MIT license.
