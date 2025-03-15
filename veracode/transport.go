@@ -15,15 +15,15 @@ import (
 // adding the Veracode HMAC Hash message to the Authorization header.
 type veracodeTransport struct {
 	r1        *rate.Limiter
-	key       string
-	secret    string
+	Key       string
+	Secret    string
 	Transport http.RoundTripper
 }
 
 // RoundTrip is required to implement the http.RoundTripper interface.
 func (v *veracodeTransport) RoundTrip(req *http.Request) (*http.Response, error) {
 	// Add the HMAC Hash message to the Authorization header
-	bearer, err := hmac.CalculateAuthorizationHeader(req.URL, req.Method, v.key, v.secret)
+	bearer, err := hmac.CalculateAuthorizationHeader(req.URL, req.Method, v.Key, v.Secret)
 	if err != nil {
 		return nil, err
 	}
@@ -58,7 +58,7 @@ func newTransport(rt http.RoundTripper, key, secret string, period time.Duration
 	return &veracodeTransport{
 		Transport: rt,
 		r1:        rate.NewLimiter(rate.Every(period), burst),
-		key:       key,
-		secret:    secret,
+		Key:       key,
+		Secret:    secret,
 	}
 }

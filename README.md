@@ -40,7 +40,7 @@ func main() {
 		Jar: jar,
 	}
 
-	client, err := veracode.NewClient(veracode.RegionEurope, httpClient, key, secret)
+	client, err := veracode.NewClient(httpClient, key, secret)
 	check(err)
 
 	ctx := context.Background()

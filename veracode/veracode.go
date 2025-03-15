@@ -45,7 +45,7 @@ type CollectionResult interface {
 	GetPageMeta() pageMeta
 }
 
-func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string) (*Client, error) {
+func NewClient(httpClient *http.Client, apiKey, apiSecret string) (*Client, error) {
 	if httpClient == nil {
 		httpClient = &http.Client{}
 	}
@@ -53,7 +53,12 @@ func NewClient(region Region, httpClient *http.Client, apiKey, apiSecret string)
 	// Wrap the transport provided in the http.Client with the veracodeTransport (which will handle rate limiting and authentication)
 	httpClient.Transport = newTransport(httpClient.Transport, apiKey, apiSecret, time.Minute*1, 500)
 
-	baseEndpoint, err := url.Parse(string(region))
+	regionURL, err := getRegionFromCredentials(apiKey)
+	if err != nil {
+		return nil, err
+	}
+
+	baseEndpoint, err := url.Parse(regionURL)
 	if err != nil {
 		return nil, err
 	}
@@ -117,17 +122,26 @@ func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 	return newResponse(resp, body), nil
 }
 
-// SetBaseURL takes a Region and updates the Client's baseURL. It write locks the sync.RWMutex to prevent any concurrent reads while writing (just in case).
-func (c *Client) SetBaseURL(region Region) error {
+// UpdateCredentials is a method that allows the caller to update the credentials for the client
+// after it has been initialized.
+func (c *Client) UpdateCredentials(apiKey, apiSecret string) error {
 	c.rwMu.Lock()
 	defer c.rwMu.Unlock()
 
-	new, err := url.Parse(string(region))
+	regionURL, err := getRegionFromCredentials(apiKey)
 	if err != nil {
-		return fmt.Errorf("error occurred while trying to parse new base URL: %s", region)
+		return err
 	}
 
-	c.baseURL = new
+	v := c.HttpClient.Transport.(*veracodeTransport)
+	v.Key, v.Secret = apiKey, apiSecret
+
+	baseEndpoint, err := url.Parse(regionURL)
+	if err != nil {
+		return err
+	}
+
+	c.baseURL = baseEndpoint
 	return nil
 }
 
