@@ -53,7 +53,7 @@ func NewClient(httpClient *http.Client, apiKey, apiSecret string) (*Client, erro
 	// Wrap the transport provided in the http.Client with the veracodeTransport (which will handle rate limiting and authentication)
 	httpClient.Transport = newTransport(httpClient.Transport, apiKey, apiSecret, time.Minute*1, 500)
 
-	regionURL, err := getRegionFromCredentials(apiKey)
+	regionURL, err := GetRegionFromCredentials(apiKey)
 	if err != nil {
 		return nil, err
 	}
@@ -128,7 +128,7 @@ func (c *Client) UpdateCredentials(apiKey, apiSecret string) error {
 	c.rwMu.Lock()
 	defer c.rwMu.Unlock()
 
-	regionURL, err := getRegionFromCredentials(apiKey)
+	regionURL, err := GetRegionFromCredentials(apiKey)
 	if err != nil {
 		return err
 	}

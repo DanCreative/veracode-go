@@ -13,13 +13,13 @@ import (
 // 	RegionCommercial   Region = "https://api.veracode.com"
 // )
 
-var regions = map[string]string{
+var Regions = map[string]string{
 	"e": "https://api.veracode.eu",
 	"f": "https://api.veracode.us",
 	"g": "https://api.veracode.com",
 }
 
-func getRegionFromCredentials(apiKey string) (string, error) {
+func GetRegionFromCredentials(apiKey string) (string, error) {
 	var regionCharacter string
 	if strings.Contains(apiKey, "-") {
 		prefix := strings.Split(apiKey, "-")[0]
@@ -32,7 +32,7 @@ func getRegionFromCredentials(apiKey string) (string, error) {
 		regionCharacter = "g"
 	}
 
-	if v, ok := regions[regionCharacter]; ok {
+	if v, ok := Regions[regionCharacter]; ok {
 		return v, nil
 	} else {
 		return "", fmt.Errorf("credential %s does not map to a known region", apiKey)

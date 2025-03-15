@@ -54,7 +54,7 @@ func main() {
 ```
 
 ## Release Notes:
-### Version ```0.5.0```
+### Version ```0.5.1```
 - Added function to automatically determine the region based on the API credentials. Function is based on code from the python veracode-api-signing package.
 - Added method to the ```Client``` to change API credentials after initialization.
 - Added functions for all API credential endpoints.
