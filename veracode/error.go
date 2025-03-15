@@ -137,9 +137,11 @@ func NewVeracodeError(resp *http.Response) error {
 	}
 
 	verr := Error{Code: resp.StatusCode, Endpoint: resp.Request.URL.Path}
-	err = json.Unmarshal(body, &verr)
-	if err != nil {
-		return err
+	if len(body) > 0 {
+		err = json.Unmarshal(body, &verr)
+		if err != nil {
+			return err
+		}
 	}
 	return verr
 }
