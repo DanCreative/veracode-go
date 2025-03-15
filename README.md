@@ -54,7 +54,18 @@ func main() {
 ```
 
 ## Release Notes:
+### Version ```0.5.0```
+- Added function to automatically determine the region based on the API credentials. Function is based on code from the python veracode-api-signing package.
+- Added method to the ```Client``` to change API credentials after initialization.
+- Added functions for all API credential endpoints.
+- Added sorting option for the Identity service endpoints.
+- Added function to get all users not in team.
+- Added function to get all teams that the current user is a part of.
+- Bug fixes.
+
 ### Version ```0.4.0```
+<details>
+<summary>See Details</summary>
 #### General:
 - Moved Module https://github.com/DanCreative/veracode-hmac-go into this module as a package (finally).
 - Added a LICENSE file to the repository. This project is going to be using the MIT license.
@@ -74,6 +85,7 @@ func main() {
 - Added CRUD support for Applications.
 - Added CRUD support for Collections.
 - Added function to get a list of the custom fields.
+</details>
 
 ### Version ```0.3.0```:
 <details>
