@@ -41,7 +41,11 @@ func hmac256(message, key []byte) []byte {
 }
 
 func removeRegion(apiCredential string) string {
-	return strings.Split(apiCredential, "-")[1]
+	if strings.Contains(apiCredential, "-") {
+		return strings.Split(apiCredential, "-")[1]
+	} else {
+		return apiCredential
+	}
 }
 
 func calculateSignature(key, nonce, timestamp, data []byte) []byte {
