@@ -24,7 +24,7 @@ func getRegionFromCredentials(apiKey string) (string, error) {
 	if strings.Contains(apiKey, "-") {
 		prefix := strings.Split(apiKey, "-")[0]
 		if len(prefix) != 8 {
-			return "", fmt.Errorf("Credential %s starts with an invalid prefix", apiKey)
+			return "", fmt.Errorf("credential %s starts with an invalid prefix", apiKey)
 		}
 
 		regionCharacter = strings.ToLower(string(prefix[6]))
@@ -35,6 +35,6 @@ func getRegionFromCredentials(apiKey string) (string, error) {
 	if v, ok := regions[regionCharacter]; ok {
 		return v, nil
 	} else {
-		return "", fmt.Errorf("Credential %s does not map to a known region", apiKey)
+		return "", fmt.Errorf("credential %s does not map to a known region", apiKey)
 	}
 }
