@@ -20,6 +20,16 @@ type TeamRelationship struct {
 	Name string `json:"name,omitempty"`
 }
 
+// ListTeamOptions contains all of the fields that can be passed as query values.
+type ListTeamOptions struct {
+	AllForOrg       *bool  `url:"all_for_org,omitempty"`
+	TeamName        string `url:"team_name,omitempty"`
+	IgnoreSelfTeams *bool  `url:"ignore_self_teams,omitempty"` // If true, return all teams in the organization. If false, return the teams the current user is a part of.
+	OnlyManageable  bool   `url:"only_manageable,omitempty"`   // Only return teams manageable by the requesting user.
+	Deleted         bool   `url:"deleted,omitempty"`           // Returns deleted teams.
+	PageOptions            // can sort team_name field
+}
+
 // teamSearchResult is required to decode the list of teams and search user response bodies.
 type teamSearchResult struct {
 	Embedded struct {
@@ -29,11 +39,12 @@ type teamSearchResult struct {
 	Page  pageMeta `json:"page"`
 }
 
-// ListTeamOptions contains all of the fields that can be passed as query values.
-type ListTeamOptions struct {
-	Size      int   `url:"size,omitempty"`
-	Page      int   `url:"page,omitempty"`
-	AllForOrg *bool `url:"all_for_org,omitempty"`
+func (r *teamSearchResult) GetLinks() navLinks {
+	return r.Links
+}
+
+func (r *teamSearchResult) GetPageMeta() pageMeta {
+	return r.Page
 }
 
 // If Relationship.Name is "", create custom struct where TeamRelationship is a pointer and set it to nil.
@@ -167,10 +178,23 @@ func (i *IdentityService) UpdateTeam(ctx context.Context, team *Team, options Up
 	return &updatedTeam, resp, nil
 }
 
-func (r *teamSearchResult) GetLinks() navLinks {
-	return r.Links
-}
+// SelfListTeams returns a list of teams that the current user is a part of.
+//
+// Veracode API documentation:
+//   - https://app.swaggerhub.com/apis/Veracode/veracode-identity_api/1.1#/%2Fv2%2Fteams/getTeams_1
+func (i *IdentityService) SelfListTeams(ctx context.Context, options ListTeamOptions) ([]Team, *Response, error) {
+	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/teams/self", http.MethodGet, nil)
+	if err != nil {
+		return nil, nil, err
+	}
 
-func (r *teamSearchResult) GetPageMeta() pageMeta {
-	return r.Page
+	req.URL.RawQuery = QueryEncode(options)
+
+	var teamsResult teamSearchResult
+
+	resp, err := i.Client.Do(req, &teamsResult)
+	if err != nil {
+		return nil, resp, err
+	}
+	return teamsResult.Embedded.Teams, resp, err
 }

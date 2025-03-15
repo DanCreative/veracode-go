@@ -7,6 +7,11 @@ import (
 	"net/http"
 )
 
+type ListBuOptions struct {
+	SearchTerm  string `url:"search_term,omitempty"` // You can search for partial strings of the name.
+	PageOptions        // can only sort by buName
+}
+
 type BusinessUnit struct {
 	BuId       string  `json:"bu_id,omitempty"`
 	BuLegacyId int     `json:"bu_legacy_id,omitempty"`
@@ -36,15 +41,13 @@ func (r *buSearchResult) GetPageMeta() pageMeta {
 //
 // Veracode API documentation:
 //   - https://docs.veracode.com/r/c_identity_list_bu
-func (i *IdentityService) ListBusinessUnits(ctx context.Context, searchTerm string) ([]BusinessUnit, *Response, error) {
+func (i *IdentityService) ListBusinessUnits(ctx context.Context, options ListBuOptions) ([]BusinessUnit, *Response, error) {
 	req, err := i.Client.NewRequest(ctx, "/api/authn/v2/business_units", http.MethodGet, nil)
 	if err != nil {
 		return nil, nil, err
 	}
 
-	if searchTerm != "" {
-		req.URL.RawQuery = "bu_name=" + searchTerm
-	}
+	req.URL.RawQuery = QueryEncode(options)
 
 	var buResult buSearchResult
 

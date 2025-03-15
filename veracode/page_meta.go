@@ -22,8 +22,14 @@ type link struct {
 	HrefURL string `json:"href"`
 }
 
+type SortQueryField struct {
+	Name   string
+	IsDesc bool
+}
+
 // PageOptions contains fields used to page through an endpoint as well as set page size.
 type PageOptions struct {
-	Size int `url:"size,omitempty"`
-	Page int `url:"page"`
+	Size int              `url:"size,omitempty"` // Increase the page size.
+	Page int              `url:"page"`           // Page through the list.
+	Sort []SortQueryField `url:"sort,omitempty"` // Sort by multiple field names. Field names have to be in camelCase. Sort is ascending by default.
 }
