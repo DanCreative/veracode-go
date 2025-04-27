@@ -53,8 +53,143 @@ func main() {
 }
 ```
 
+## Implementation Status
+
+> [!NOTE]
+> **Legend:**
+> 
+> <table><tr><td>🟢</td><th>Implemented</th></tr><tr><td>🟠</td><th>Partially Implemented</th></tr><tr><td>🔴</td><th>Not Implemented Yet</th></tr><tr><td>🔷</td><th>Planned Next</th></tr><tr><td>🔻</td><th>Not Planned / In Scope</th></tr><tr></table>
+>
+
+| Service | Version | Entity | Status | Priority |
+| --- | --- | --- | --- | --- |
+| Identity | `v2` `latest` | user | 🟢 | |
+|  |  | business unit | 🟢 | |
+|  |  | api credentials | 🟢 | |
+|  |  | team | 🟢 | |
+|  |  | role | 🟠 | |
+|  |  | jit default settings | 🔴 | 🔻 |
+|  |  | permissions | 🔴 | |
+| Application | `v1` `latest` | application | 🟢 | |
+|  | | collection | 🟢 | |
+| | | custom fields | 🟠 | |
+| Development Sandbox | `v1` `latest` | sandbox | 🟢 | |
+| Healthcheck | `na` | | 🟢 | |
+| Policy | `v1` `latest`  | policy (incl. version) | 🔴 | 🔷 |
+|  |   | policy settings | 🔴 | 🔷 |
+|  |   | policy license | 🔴 | 🔷 |
+| Annotations | `v2` `latest` |  | 🔴 |  |
+| DAST | `v1` `latest` |  | 🔴 |  |
+| DAST Essentials | `v1` `latest` |  | 🔴 |  |
+| eLearning | `v1` `latest` |  | 🔴 | 🔻 |
+| Findings | `v2` `latest` |  | 🔴 | |
+| Greenlight | `v3` `latest` |  | 🔴 | 🔻 |
+| Pipeline | `v1` `latest` |  | 🔴 | 🔻 |
+| Reporting | `v1` `latest` |  | 🔴 | |
+| SCA | `v1-v3` `latest` |  | 🔴 | 🔻 |
+| Security Labs |  `na` |  | 🔴 | 🔻 |
+| Summary Report | `v2` `latest` | summary report | 🔴 | |
+
+## Custom Endpoints
+
+If the endpoint that you need to call is not currently implemented, you can implement it yourself using the Client's helper function. To do so, you can wrap the Client into a custom local Client struct. Please see an example below:
+
+```go
+// Entity in this example, is the model that you will be requesting.
+type Entity struct {
+	Name string
+}
+
+// EntityOptions in this example, is the list options. These options will be marshalled into the query parameters.
+type EntityOptions struct {
+	Size int `url:"size,omitempty"`
+	Page int `url:"page"`
+}
+
+// entitySearchResult in this example, is the model that will contain all of the entities in the list.
+// For collection result models, make sure that the struct implements below interface:
+/*
+	type CollectionResult interface {
+		GetLinks() navLinks
+		GetPageMeta() pageMeta
+	}
+*/
+//
+// That will allow the Client to retrieve the meta data and add it to the returned veracode.Response struct.
+type entitySearchResult struct {
+	Embedded struct {
+		Entities []Entity `json:"entities"`
+	} `json:"_embedded"`
+	Links veracode.NavLinks `json:"_links"`
+	Page  veracode.PageMeta `json:"page"`
+}
+
+func (r *entitySearchResult) GetLinks() veracode.NavLinks {
+	return r.Links
+}
+
+func (r *entitySearchResult) GetPageMeta() veracode.PageMeta {
+	return r.Page
+}
+
+// Client wraps the veracode.Client.
+type Client struct {
+	*veracode.Client
+}
+
+// Example of requesting a single entity.
+func (c *Client) GetEntity(ctx context.Context, entityGuid string) (*Entity, *veracode.Response, error) {
+	// veracode.Client.NewRequest() is a helper method that creates a new request with the full resolved
+	// absolute path of the provided endpoint path.
+	req, err := c.NewRequest(ctx, fmt.Sprintf("/path/to/entities/%s", entityGuid), http.MethodGet, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	var result Entity
+
+	// veracode.Client.Do() is a helper method that executes the provided http.Request, handles the authentication and marshals the 
+	// JSON response body into either the provided struct or into an error if an error occurred.
+	resp, err := c.Do(req, &result)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return &result, resp, nil
+}
+
+// Example of requesting a list of entities.
+func (c *Client) ListEntity(ctx context.Context, options EntityOptions) ([]Entity, *veracode.Response, error) {
+	req, err := c.NewRequest(ctx, "/path/to/entities", http.MethodGet, nil)
+	if err != nil {
+		return nil, nil, err
+	}
+
+	// helper function veracode.QueryEncode() encodes the options into query parameters.
+	// It also handles some Veracode API specific behaviours.
+	req.URL.RawQuery = veracode.QueryEncode(options)
+
+	var result entitySearchResult
+
+	resp, err := c.Do(req, &result)
+	if err != nil {
+		return nil, resp, err
+	}
+
+	return result.Embedded.Entities, resp, nil
+}
+```
+
 ## Release Notes:
+
+### Version ```0.6.0```
+- Added Healthcheck endpoint.
+- Added Development Sandboxes endpoints.
+- Minor QOL updates.
+
 ### Version ```0.5.1```
+<details>
+<summary>See Details</summary>
 - Added function to automatically determine the region based on the API credentials. Function is based on code from the python veracode-api-signing package.
 - Added method to the ```Client``` to change API credentials after initialization.
 - Added functions for all API credential endpoints.
@@ -62,6 +197,7 @@ func main() {
 - Added function to get all users not in team.
 - Added function to get all teams that the current user is a part of.
 - Bug fixes.
+</details>
 
 ### Version ```0.4.0```
 <details>

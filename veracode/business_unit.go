@@ -25,15 +25,15 @@ type buSearchResult struct {
 	Embedded struct {
 		BusinessUnits []BusinessUnit `json:"business_units"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
-func (r *buSearchResult) GetLinks() navLinks {
+func (r *buSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *buSearchResult) GetPageMeta() pageMeta {
+func (r *buSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 

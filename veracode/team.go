@@ -35,15 +35,15 @@ type teamSearchResult struct {
 	Embedded struct {
 		Teams []Team `json:"teams"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
-func (r *teamSearchResult) GetLinks() navLinks {
+func (r *teamSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *teamSearchResult) GetPageMeta() pageMeta {
+func (r *teamSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 

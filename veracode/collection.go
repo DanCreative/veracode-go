@@ -56,15 +56,15 @@ type collectionSearchResult struct {
 	Embedded struct {
 		Collections []Collection `json:"collections"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
-func (r *collectionSearchResult) GetLinks() navLinks {
+func (r *collectionSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *collectionSearchResult) GetPageMeta() pageMeta {
+func (r *collectionSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 

@@ -20,29 +20,23 @@ type Client struct {
 	// Services used for talking to the different parts of the Veracode API
 	common service
 
-	// You can use the Identity Service to manage the administrative configuration for your organization that is in the Veracode Platform.
-	// For more information: https://docs.veracode.com/r/c_identity_intro.
-	//
-	// Currently supports V2 of the Identity API
-	Identity *IdentityService
-	// You can use the Applications API to quickly access information about your Veracode applications.
-	// For more information, review the documentation: https://docs.veracode.com/r/c_apps_intro
-	//
-	// Currently supports V1 of the Applications API
-	Application *ApplicationService
+	Identity    *IdentityService    // See type for documentation.
+	Application *ApplicationService // See type for documentation.
+	Sandbox     *SandboxService     // See type for documentation.
+	Healthcheck *HealthCheckService // See type for documentation.
 }
 
 type Response struct {
 	*http.Response
-	Page  pageMeta
-	Links navLinks
+	Page  PageMeta
+	Links NavLinks
 }
 
 // Any struct that is used to unmarshal a collection of entities, needs to implement the CollectionResult interface in order for the page meta and navigational links
 // to be set in the Response object.
 type CollectionResult interface {
-	GetLinks() navLinks
-	GetPageMeta() pageMeta
+	GetLinks() NavLinks
+	GetPageMeta() PageMeta
 }
 
 func NewClient(httpClient *http.Client, apiKey, apiSecret string) (*Client, error) {
@@ -75,6 +69,8 @@ func NewClient(httpClient *http.Client, apiKey, apiSecret string) (*Client, erro
 	c.common.Client = c
 	c.Identity = (*IdentityService)(&c.common)
 	c.Application = (*ApplicationService)(&c.common)
+	c.Sandbox = (*SandboxService)(&c.common)
+	c.Healthcheck = (*HealthCheckService)(&c.common)
 
 	return c, nil
 }

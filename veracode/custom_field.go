@@ -19,15 +19,15 @@ type appCustomFieldSearchResult struct {
 	Embedded struct {
 		CustomFields []ApplicationCustomField `json:"app_custom_field_names"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
-func (r *appCustomFieldSearchResult) GetLinks() navLinks {
+func (r *appCustomFieldSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *appCustomFieldSearchResult) GetPageMeta() pageMeta {
+func (r *appCustomFieldSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 

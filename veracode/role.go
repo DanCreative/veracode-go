@@ -28,15 +28,15 @@ type roleSearchResult struct {
 	Embedded struct {
 		Roles []Role `json:"roles"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
-func (r *roleSearchResult) GetLinks() navLinks {
+func (r *roleSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *roleSearchResult) GetPageMeta() pageMeta {
+func (r *roleSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 
