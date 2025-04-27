@@ -12,8 +12,8 @@ type userSearchResult struct {
 	Embedded struct {
 		Users []User `json:"users"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
 type User struct {
@@ -105,11 +105,11 @@ func (u *User) MarshalJSON() ([]byte, error) {
 	})
 }
 
-func (r *userSearchResult) GetLinks() navLinks {
+func (r *userSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *userSearchResult) GetPageMeta() pageMeta {
+func (r *userSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 

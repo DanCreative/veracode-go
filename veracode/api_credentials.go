@@ -16,7 +16,7 @@ type APICredentials struct {
 	ExpirationTs   ctime    `json:"expiration_ts"`
 	RevocationUser string   `json:"revocation_user"`
 	RevocationTs   ctime    `json:"revocation_ts"`
-	Links          navLinks `json:"_links"`
+	Links          NavLinks `json:"_links"`
 }
 
 func (ct *ctime) UnmarshalJSON(b []byte) (err error) {

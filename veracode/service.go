@@ -16,3 +16,20 @@ type IdentityService service
 //
 // Currently supports V1 of the Applications API
 type ApplicationService service
+
+// You can use the Development Sandbox API to create, update, and delete development sandboxes.
+// For more information:
+// 	- https://docs.veracode.com/r/c_rest_sandbox_intro
+// 	- https://app.swaggerhub.com/apis/Veracode/veracode-development_sandbox_api/2.0#/Application%20Sandbox%20Information%20API
+//
+// Currently supports V1 of the Development Sandbox API
+type SandboxService service
+
+// You can use the Healthcheck API to perform a simple test for verifying authenticated connectivity to Veracode.
+//
+// The Healthcheck API provides this lightweight endpoint: /healthcheck/status
+//
+// You use the endpoint to verify that Veracode services are available and responding to authentication events, instead of using other API calls that can potentially return large volumes of data.
+//
+// For more information: https://docs.veracode.com/r/c_healthcheck_intro
+type HealthCheckService service

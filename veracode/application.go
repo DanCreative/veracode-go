@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"net/http"
+	"time"
 )
 
 type BusinessCriticality string
@@ -79,6 +80,7 @@ const (
 type Application struct {
 	Guid    string             `json:"guid,omitempty"`
 	Profile ApplicationProfile `json:"profile,omitempty"`
+	Scans   []ApplicationScan  `json:"scans,omitempty"`
 }
 
 type ApplicationProfile struct {
@@ -102,10 +104,19 @@ type CustomField struct {
 	Value string `json:"value,omitempty"`
 }
 
+type ApplicationScan struct {
+	InternalStatus string     `json:"internal_status,omitempty"`
+	ModifiedDate   time.Time  `json:"modified_date,omitempty"`
+	ScanType       string     `json:"scan_type,omitempty"`
+	ScanURL        string     `json:"scan_url,omitempty"`
+	Status         ScanStatus `json:"status,omitempty"`
+}
+
 type ApplicationPolicy struct {
-	Name      string `json:"name,omitempty"`
-	Guid      string `json:"guid,omitempty"`
-	IsDefault bool   `json:"is_default,omitempty"`
+	Name                   string           `json:"name,omitempty"`
+	Guid                   string           `json:"guid,omitempty"`
+	IsDefault              bool             `json:"is_default,omitempty"`
+	PolicyComplianceStatus PolicyCompliance `json:"policy_compliance_status,omitempty"`
 }
 
 type ApplicationTeam struct {
@@ -184,15 +195,15 @@ type applicationSearchResult struct {
 	Embedded struct {
 		Applications []Application `json:"applications"`
 	} `json:"_embedded"`
-	Links navLinks `json:"_links"`
-	Page  pageMeta `json:"page"`
+	Links NavLinks `json:"_links"`
+	Page  PageMeta `json:"page"`
 }
 
-func (r *applicationSearchResult) GetLinks() navLinks {
+func (r *applicationSearchResult) GetLinks() NavLinks {
 	return r.Links
 }
 
-func (r *applicationSearchResult) GetPageMeta() pageMeta {
+func (r *applicationSearchResult) GetPageMeta() PageMeta {
 	return r.Page
 }
 
