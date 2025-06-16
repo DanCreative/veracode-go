@@ -1,6 +1,6 @@
 ## About
 
-The most robust Go API client for the Veracode platfrom.
+The most robust Go API client for the Veracode platform.
 
 This library is still in early stages of development. It will be updated as I require features in other Veracode related projects.
 
