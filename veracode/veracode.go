@@ -3,6 +3,8 @@ package veracode
 import (
 	"context"
 	"encoding/json"
+	"encoding/xml"
+	"errors"
 	"fmt"
 	"io"
 	"net/http"
@@ -13,9 +15,10 @@ import (
 )
 
 type Client struct {
-	baseURL    *url.URL
-	rwMu       sync.RWMutex
-	HttpClient *http.Client
+	baseRestURL *url.URL
+	baseXmlURL  *url.URL
+	rwMu        sync.RWMutex
+	HttpClient  *http.Client
 
 	// Services used for talking to the different parts of the Veracode API
 	common service
@@ -24,6 +27,7 @@ type Client struct {
 	Application *ApplicationService // See type for documentation.
 	Sandbox     *SandboxService     // See type for documentation.
 	Healthcheck *HealthCheckService // See type for documentation.
+	UploadXML   *UploadXMLService   // See type for documentation.
 }
 
 type Response struct {
@@ -47,35 +51,49 @@ func NewClient(httpClient *http.Client, apiKey, apiSecret string) (*Client, erro
 	// Wrap the transport provided in the http.Client with the veracodeTransport (which will handle rate limiting and authentication)
 	httpClient.Transport = newTransport(httpClient.Transport, apiKey, apiSecret, time.Minute*1, 500)
 
-	regionURL, err := GetRegionFromCredentials(apiKey)
+	region, err := GetRegionFromCredentials(apiKey)
 	if err != nil {
 		return nil, err
-	}
-
-	baseEndpoint, err := url.Parse(regionURL)
-	if err != nil {
-		return nil, err
-	}
-
-	if !strings.HasSuffix(baseEndpoint.Path, "/") {
-		baseEndpoint.Path += "/"
 	}
 
 	c := &Client{
-		baseURL:    baseEndpoint,
 		HttpClient: httpClient,
 	}
+
+	setBaseURLs(c, region)
 
 	c.common.Client = c
 	c.Identity = (*IdentityService)(&c.common)
 	c.Application = (*ApplicationService)(&c.common)
 	c.Sandbox = (*SandboxService)(&c.common)
 	c.Healthcheck = (*HealthCheckService)(&c.common)
+	c.UploadXML = (*UploadXMLService)(&c.common)
 
 	return c, nil
 }
 
-func (c *Client) NewRequest(ctx context.Context, endpoint string, method string, body io.Reader) (*http.Request, error) {
+func setBaseURLs(c *Client, r Region) {
+	for _, apiType := range []string{"rest", "xml"} {
+		baseEndpoint, _ := url.Parse(r[apiType])
+
+		if !strings.HasSuffix(baseEndpoint.Path, "/") {
+			baseEndpoint.Path += "/"
+		}
+
+		switch apiType {
+		case "rest":
+			c.baseRestURL = baseEndpoint
+		case "xml":
+			c.baseXmlURL = baseEndpoint
+		}
+	}
+}
+
+// NewRequest is a helper method that creates a new request using the [Client]'s settings.
+//
+// By default, NewRequest will set the base URL to the REST variant, the caller can optionally provide shouldUseXML
+// to switch to the XML base URL.
+func (c *Client) NewRequest(ctx context.Context, endpoint string, method string, body io.Reader, shouldUseXML ...bool) (*http.Request, error) {
 	urlEndpoint, err := url.Parse(endpoint)
 	if err != nil {
 		return nil, err
@@ -84,12 +102,20 @@ func (c *Client) NewRequest(ctx context.Context, endpoint string, method string,
 	c.rwMu.RLock()
 	defer c.rwMu.RUnlock()
 
-	url := c.baseURL.ResolveReference(urlEndpoint)
+	var url *url.URL
+
+	if len(shouldUseXML) > 0 && shouldUseXML[0] {
+		url = c.baseXmlURL.ResolveReference(urlEndpoint)
+	} else {
+		url = c.baseRestURL.ResolveReference(urlEndpoint)
+	}
 
 	req, err := http.NewRequestWithContext(ctx, method, url.String(), body)
 	if err != nil {
 		return nil, err
 	}
+
+	req.Header.Add("Content-Type", "application/json")
 
 	return req, err
 }
@@ -103,19 +129,84 @@ func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 	}
 	defer resp.Body.Close()
 
-	err = checkStatus(resp)
+	contentType := resp.Header.Get("Content-Type")
+
+	if body != nil {
+		switch contentType {
+		case "application/json", "application/json;charset=UTF-8":
+			return doJson(resp, body)
+
+		case "text/xml":
+			return doXml(resp, body)
+
+		default:
+			return newResponse(resp, nil), fmt.Errorf("response header: 'Content-Type' contains unsupported value: %s", contentType)
+		}
+	}
+
+	return newResponse(resp, body), nil
+}
+
+// doJson handles responses from the JSON APIs.
+//
+// Note: Only doJson contains the [checkStatus] function. That is because the Veracode XML APIs return 200 codes
+// even if there is an error. Therefore the function is only applicable here and not on [doXml]
+func doJson(resp *http.Response, body any) (*Response, error) {
+	err := checkStatus(resp)
 	if err != nil {
 		err = NewVeracodeError(resp)
 		return newResponse(resp, nil), err
 	}
+	err = json.NewDecoder(resp.Body).Decode(body)
+	if err != nil {
+		return newResponse(resp, nil), err
+	}
 
-	if body != nil {
-		err = json.NewDecoder(resp.Body).Decode(body)
+	return newResponse(resp, body), nil
+}
+
+// doXml handles responses from the XML APIs.
+//
+// Note: Only doJson contains the [checkStatus] function. That is because the Veracode XML APIs return 200 codes
+// even if there is an error. Therefore this function does not check the status code, it checks the first token
+// in the XML document to determine whether an error occurred.
+func doXml(resp *http.Response, body any) (*Response, error) {
+	decoder := xml.NewDecoder(resp.Body)
+
+	// Decode to the first StartElement and determine if its name equals "error" or not.
+	// If its name equals "error", unmarshal the Response.Body into the Veracode Error and return that.
+	// Otherwise, unmarshal the Response.Body into the provided body.
+	for {
+		t, err := decoder.Token()
 		if err != nil {
+			if errors.Is(err, io.EOF) {
+				break
+			}
 			return newResponse(resp, nil), err
 		}
+
+		if token, ok := t.(xml.StartElement); ok {
+			if token.Name.Local == "error" {
+				verr := Error{Code: resp.StatusCode, Endpoint: resp.Request.URL.Path}
+
+				err = decoder.DecodeElement(&verr, &token)
+				if err != nil {
+					return newResponse(resp, nil), err
+				}
+
+				return newResponse(resp, nil), verr
+			} else {
+				err = decoder.DecodeElement(body, &token)
+				if err != nil {
+					return newResponse(resp, nil), err
+				}
+
+				return newResponse(resp, body), nil
+			}
+		}
 	}
-	return newResponse(resp, body), nil
+
+	return newResponse(resp, nil), nil
 }
 
 // UpdateCredentials is a method that allows the caller to update the credentials for the client
@@ -124,7 +215,7 @@ func (c *Client) UpdateCredentials(apiKey, apiSecret string) error {
 	c.rwMu.Lock()
 	defer c.rwMu.Unlock()
 
-	regionURL, err := GetRegionFromCredentials(apiKey)
+	region, err := GetRegionFromCredentials(apiKey)
 	if err != nil {
 		return err
 	}
@@ -132,12 +223,8 @@ func (c *Client) UpdateCredentials(apiKey, apiSecret string) error {
 	v := c.HttpClient.Transport.(*veracodeTransport)
 	v.Key, v.Secret = apiKey, apiSecret
 
-	baseEndpoint, err := url.Parse(regionURL)
-	if err != nil {
-		return err
-	}
+	setBaseURLs(c, region)
 
-	c.baseURL = baseEndpoint
 	return nil
 }
 

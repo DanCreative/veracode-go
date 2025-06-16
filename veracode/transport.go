@@ -29,7 +29,6 @@ func (v *veracodeTransport) RoundTrip(req *http.Request) (*http.Response, error)
 	}
 
 	req.Header.Add("Authorization", bearer)
-	req.Header.Add("Content-Type", "application/json")
 
 	// Wait for the limiter.
 	err = v.r1.Wait(req.Context())
