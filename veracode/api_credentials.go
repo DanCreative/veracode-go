@@ -6,6 +6,7 @@ import (
 	"time"
 )
 
+// ctime is used to unmarshal the different time formats returned by the API into [time.Time]
 type ctime struct {
 	time.Time
 }
@@ -20,13 +21,27 @@ type APICredentials struct {
 }
 
 func (ct *ctime) UnmarshalJSON(b []byte) (err error) {
-	n, err := time.Parse("2006-01-02T15:04:05.000Z0700", string(b[1:len(b)-1]))
-	if err != nil {
-		return err
+	// Standard RFC 3339
+	err = ct.Time.UnmarshalJSON(b)
+	if err == nil {
+		return nil
 	}
 
-	ct.Time = n
-	return nil
+	// Variation of ISO 8601
+	n, err := time.Parse("2006-01-02T15:04:05.000Z0700", string(b[1:len(b)-1]))
+	if err == nil {
+		ct.Time = n
+		return nil
+	}
+
+	// ISO 8601
+	n, err = time.Parse("2006-01-02 15:04:05 UTC", string(b[1:len(b)-1]))
+	if err == nil {
+		ct.Time = n
+		return nil
+	}
+
+	return err
 }
 
 // SelfGetCredentials returns the current user's API credentials.

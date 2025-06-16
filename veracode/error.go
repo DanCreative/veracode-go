@@ -2,6 +2,7 @@ package veracode
 
 import (
 	"encoding/json"
+	"encoding/xml"
 	"fmt"
 	"io"
 	"net/http"
@@ -69,7 +70,7 @@ func (v Error) Error() string {
 }
 
 func (e *Error) UnmarshalJSON(data []byte) (err error) {
-	errBody := errorBody{}
+	errBody := errorBodyJson{}
 	err = json.Unmarshal(data, &errBody)
 	if err != nil {
 		return
@@ -102,7 +103,18 @@ func (e *Error) UnmarshalJSON(data []byte) (err error) {
 	return
 }
 
-type errorBody struct {
+func (e *Error) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var xml errorBodyXml
+
+	if err := d.DecodeElement(&xml, &start); err != nil {
+		return err
+	}
+
+	e.Messages = []string{xml.Message}
+	return nil
+}
+
+type errorBodyJson struct {
 	HttpCode   int    `json:"http_code"`
 	HttpStatus string `json:"http_status"`
 	Message    string `json:"message"`
@@ -125,6 +137,11 @@ type errorBody struct {
 	} `json:"_embedded,omitempty"`
 }
 
+type errorBodyXml struct {
+	XMLName xml.Name `xml:"error"`
+	Message string   `xml:",chardata"`
+}
+
 // NewVeracodeError unmarshals a response body into a new Veracode error.
 func NewVeracodeError(resp *http.Response) error {
 	if resp == nil {
@@ -142,6 +159,7 @@ func NewVeracodeError(resp *http.Response) error {
 		if err != nil {
 			return err
 		}
+
 	}
 	return verr
 }

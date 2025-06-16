@@ -33,3 +33,8 @@ type SandboxService service
 //
 // For more information: https://docs.veracode.com/r/c_healthcheck_intro
 type HealthCheckService service
+
+// UploadXMLService will contain all of the endpoints for the legacy XML upload service that do not have a REST equivalent.
+//
+// For more information: https://docs.veracode.com/r/c_about_upload_API
+type UploadXMLService service

@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"time"
 )
@@ -325,4 +326,25 @@ func (a *ApplicationService) DeleteApplication(ctx context.Context, appId string
 	}
 
 	return resp, nil
+}
+
+// GetSummaryReport returns a summary report of results for an application profile.
+//
+// Veracode API documentation: https://docs.veracode.com/r/c_rest_summary_report_intro
+func (a *ApplicationService) GetSummaryReport(ctx context.Context, appId string, options SummaryReportOptions) (SummaryReport, *Response, error) {
+	req, err := a.Client.NewRequest(ctx, fmt.Sprintf("/appsec/v2/applications/%s/summary_report", appId), http.MethodGet, nil)
+	if err != nil {
+		return SummaryReport{}, nil, err
+	}
+
+	req.URL.RawQuery = QueryEncode(options)
+
+	var report SummaryReport
+
+	resp, err := a.Client.Do(req, &report)
+	if err != nil {
+		return SummaryReport{}, resp, err
+	}
+
+	return report, resp, nil
 }
