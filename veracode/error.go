@@ -76,6 +76,11 @@ func (e *Error) UnmarshalJSON(data []byte) (err error) {
 		return
 	}
 
+	if errBody.ErrorDescription != "" {
+		e.Messages = []string{errBody.Error, errBody.ErrorDescription}
+		return
+	}
+
 	if errBody.Title != "" {
 		e.Messages = []string{errBody.Title}
 		return
@@ -118,6 +123,9 @@ type errorBodyJson struct {
 	HttpCode   int    `json:"http_code"`
 	HttpStatus string `json:"http_status"`
 	Message    string `json:"message"`
+
+	ErrorDescription string `json:"error_description"`
+	Error            string `json:"error"`
 
 	Title  string   `json:"title,omitempty"`
 	Errors []string `json:"errors"`
