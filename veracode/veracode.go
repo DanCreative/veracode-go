@@ -133,7 +133,7 @@ func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 
 	if body != nil {
 		switch contentType {
-		case "application/json", "application/json;charset=UTF-8":
+		case "application/json", "application/json;charset=UTF-8", "application/json;charset=ISO-8859-1":
 			return doJson(resp, body)
 
 		case "text/xml":
