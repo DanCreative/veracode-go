@@ -186,7 +186,7 @@ func (c *Client) ListEntity(ctx context.Context, options EntityOptions) ([]Entit
 
 ## Release Notes
 
-### Version ```0.7.0```
+### Version ```0.7.x```
 
 - Added XML handling for the XML APIs.
 - Added the ```getbuildinfo.do``` and ```getbuildlist.do``` endpoints.
@@ -197,15 +197,18 @@ func (c *Client) ListEntity(ctx context.Context, options EntityOptions) ([]Entit
 
 <details>
 <summary>See Details</summary>
+ 
 - Added Healthcheck endpoint.
 - Added Development Sandboxes endpoints.
 - Minor QOL updates.
+
 </details>
 
-### Version ```0.5.1```
+### Version ```0.5.x```
 
 <details>
 <summary>See Details</summary>
+
 - Added function to automatically determine the region based on the API credentials. Function is based on code from the python veracode-api-signing package.
 - Added method to the ```Client``` to change API credentials after initialization.
 - Added functions for all API credential endpoints.
@@ -213,6 +216,7 @@ func (c *Client) ListEntity(ctx context.Context, options EntityOptions) ([]Entit
 - Added function to get all users not in team.
 - Added function to get all teams that the current user is a part of.
 - Bug fixes.
+
 </details>
 
 ### Version ```0.4.0```
