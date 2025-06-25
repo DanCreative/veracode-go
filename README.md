@@ -192,12 +192,13 @@ func (c *Client) ListEntity(ctx context.Context, options EntityOptions) ([]Entit
 - Added the ```getbuildinfo.do``` and ```getbuildlist.do``` endpoints.
 - Added the ```summary_report``` endpoint.
 - Bug fixes.
+- Updated the fields on the Application model.
 
 ### Version ```0.6.0```
 
 <details>
 <summary>See Details</summary>
- 
+
 - Added Healthcheck endpoint.
 - Added Development Sandboxes endpoints.
 - Minor QOL updates.
