@@ -79,25 +79,35 @@ const (
 )
 
 type Application struct {
-	Guid    string             `json:"guid,omitempty"`
-	Profile ApplicationProfile `json:"profile,omitempty"`
-	Scans   []ApplicationScan  `json:"scans,omitempty"`
+	AppProfileUrl     string             `json:"app_profile_url,omitempty"`
+	Created           ctime              `json:"created"`
+	Id                int                `json:"id,omitempty"`
+	LastCompletedScan ctime              `json:"last_completed_scan"`
+	Modified          ctime              `json:"modified"`
+	Oid               int                `json:"oid,omitempty"`
+	OrganizationId    int                `json:"organization_id,omitempty"`
+	ResultsUrl        string             `json:"results_url,omitempty"`
+	Guid              string             `json:"guid,omitempty"`
+	Profile           ApplicationProfile `json:"profile"`
+	Scans             []ApplicationScan  `json:"scans,omitempty"`
 }
 
 type ApplicationProfile struct {
-	Name           string                   `json:"name,omitempty"`
-	Tags           string                   `json:"tags,omitempty"`
-	BusinessUnit   *ApplicationBusinessUnit `json:"business_unit,omitempty"`
-	BusinessOwners []struct {
+	ArcherAppName       string              `json:"archer_app_name,omitempty"`
+	BusinessCriticality BusinessCriticality `json:"business_criticality,omitempty"` // Enum: [ VERY_HIGH, HIGH, MEDIUM, LOW, VERY_LOW ]
+	BusinessOwners      []struct {
 		Email string `json:"email,omitempty"`
 		Name  string `json:"name,omitempty"`
 	} `json:"business_owners,omitempty"`
-	ArcherAppName       string              `json:"archer_app_name,omitempty"`
-	Policies            []ApplicationPolicy `json:"policies,omitempty"`
-	Teams               []ApplicationTeam   `json:"teams,omitempty"`
-	CustomFields        []CustomField       `json:"custom_fields,omitempty"`
-	Description         string              `json:"description,omitempty"`
-	BusinessCriticality BusinessCriticality `json:"business_criticality,omitempty"`
+	BusinessUnit *ApplicationBusinessUnit `json:"business_unit,omitempty"`
+	Name         string                   `json:"name,omitempty"`
+	Tags         string                   `json:"tags,omitempty"`
+	Policies     []ApplicationPolicy      `json:"policies,omitempty"`
+	Teams        []ApplicationTeam        `json:"teams,omitempty"`
+	CustomFields []CustomField            `json:"custom_fields,omitempty"`
+	Description  string                   `json:"description,omitempty"`
+	GitRepoUrl   string                   `json:"git_repo_url,omitempty"`
+	Settings     map[string]bool          `json:"settings,omitempty"`
 }
 
 type CustomField struct {
