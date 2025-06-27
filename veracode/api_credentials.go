@@ -21,6 +21,10 @@ type APICredentials struct {
 }
 
 func (ct *ctime) UnmarshalJSON(b []byte) (err error) {
+	if len(string(b)) < 3 {
+		return nil
+	}
+
 	// Standard RFC 3339
 	err = ct.Time.UnmarshalJSON(b)
 	if err == nil {
