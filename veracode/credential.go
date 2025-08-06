@@ -4,7 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
-	"path"
+	"path/filepath"
 
 	"gopkg.in/ini.v1"
 )
@@ -22,7 +22,7 @@ func GetCredentialsFilePath() (string, error) {
 		return "", err
 	}
 
-	return path.Join(homeDir, ".veracode", "credentials"), nil
+	return filepath.Join(homeDir, ".veracode", "credentials"), nil
 }
 
 // GetProfiles returns all of the profiles stored in the Veracode credentials file.
