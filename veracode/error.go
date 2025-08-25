@@ -59,64 +59,9 @@ import (
 // 	}
 //  }
 
-type Error struct {
-	Code     int
-	Endpoint string
-	Messages []string
-}
-
-func (v Error) Error() string {
-	return fmt.Sprintf("api error returned from %s (%d): [\"%s\"]", v.Endpoint, v.Code, strings.Join(v.Messages, "\", \""))
-}
-
-func (e *Error) UnmarshalJSON(data []byte) (err error) {
-	errBody := errorBodyJson{}
-	err = json.Unmarshal(data, &errBody)
-	if err != nil {
-		return
-	}
-
-	if errBody.ErrorDescription != "" {
-		e.Messages = []string{errBody.Error, errBody.ErrorDescription}
-		return
-	}
-
-	if errBody.Title != "" {
-		e.Messages = []string{errBody.Title}
-		return
-	}
-
-	if errBody.Message != "" {
-		e.Messages = []string{errBody.Message}
-		return
-	}
-
-	if l := len(errBody.Errors); l > 0 {
-		e.Messages = make([]string, l)
-		copy(e.Messages, errBody.Errors)
-		return
-	}
-
-	if l := len(errBody.Embedded.Errors); l > 0 {
-		e.Messages = make([]string, len(errBody.Embedded.Errors))
-		for k, apiError := range errBody.Embedded.Errors {
-			e.Messages[k] = apiError.Title
-		}
-		return
-	}
-
-	return
-}
-
-func (e *Error) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
-	var xml errorBodyXml
-
-	if err := d.DecodeElement(&xml, &start); err != nil {
-		return err
-	}
-
-	e.Messages = []string{xml.Message}
-	return nil
+type errorSource struct {
+	Parameter string `json:"parameter,omitempty"`
+	Pointer   string `json:"pointer,omitempty"`
 }
 
 type errorBodyJson struct {
@@ -130,6 +75,9 @@ type errorBodyJson struct {
 	Title  string   `json:"title,omitempty"`
 	Errors []string `json:"errors"`
 	// Status int      `json:"status"`
+
+	Detail string      `json:"detail,omitempty"`
+	Source errorSource `json:"source,omitempty"`
 
 	Embedded struct {
 		Errors []struct {
@@ -148,6 +96,67 @@ type errorBodyJson struct {
 type errorBodyXml struct {
 	XMLName xml.Name `xml:"error"`
 	Message string   `xml:",chardata"`
+}
+
+type Error struct {
+	Code     int
+	Endpoint string
+	Messages []string
+}
+
+func (v Error) Error() string {
+	return fmt.Sprintf("api error returned from %s (%d): [\"%s\"]", v.Endpoint, v.Code, strings.Join(v.Messages, "\", \""))
+}
+
+func (e *Error) UnmarshalJSON(data []byte) (err error) {
+	errBody := errorBodyJson{}
+	err = json.Unmarshal(data, &errBody)
+	if err != nil {
+		return
+	}
+
+	if errBody.ErrorDescription != "" {
+		e.Messages = append(e.Messages, fmt.Sprintf("description:'%s'", errBody.ErrorDescription), fmt.Sprintf("error:'%s'", errBody.Error))
+	}
+
+	if errBody.Detail != "" {
+		e.Messages = append(e.Messages, fmt.Sprintf("detail:'%s'", errBody.Detail))
+	}
+
+	if errBody.Title != "" {
+		e.Messages = append(e.Messages, fmt.Sprintf("title:'%s'", errBody.Title))
+	}
+
+	if errBody.Message != "" {
+		e.Messages = append(e.Messages, fmt.Sprintf("message:'%s'", errBody.Message))
+	}
+
+	if errBody.Source.Parameter != "" {
+		e.Messages = append(e.Messages, fmt.Sprintf("parameter: '%s' at pointer: '%s'", errBody.Source.Parameter, errBody.Source.Pointer))
+	}
+
+	if l := len(errBody.Errors); l > 0 {
+		copy(e.Messages, errBody.Errors)
+	}
+
+	if l := len(errBody.Embedded.Errors); l > 0 {
+		for _, apiError := range errBody.Embedded.Errors {
+			e.Messages = append(e.Messages, fmt.Sprintf("{id:'%s', code:'%s', title: '%s', status: '%s'}", apiError.Id, apiError.Code, apiError.Title, apiError.Status))
+		}
+	}
+
+	return
+}
+
+func (e *Error) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
+	var xml errorBodyXml
+
+	if err := d.DecodeElement(&xml, &start); err != nil {
+		return err
+	}
+
+	e.Messages = []string{xml.Message}
+	return nil
 }
 
 // NewVeracodeError unmarshals a response body into a new Veracode error.

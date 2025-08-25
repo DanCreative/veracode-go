@@ -28,6 +28,7 @@ type Client struct {
 	Sandbox     *SandboxService     // See type for documentation.
 	Healthcheck *HealthCheckService // See type for documentation.
 	UploadXML   *UploadXMLService   // See type for documentation.
+	Policy      *PolicyService      // See type for documentation.
 }
 
 type Response struct {
@@ -68,6 +69,7 @@ func NewClient(httpClient *http.Client, apiKey, apiSecret string) (*Client, erro
 	c.Sandbox = (*SandboxService)(&c.common)
 	c.Healthcheck = (*HealthCheckService)(&c.common)
 	c.UploadXML = (*UploadXMLService)(&c.common)
+	c.Policy = (*PolicyService)(&c.common)
 
 	return c, nil
 }
@@ -133,14 +135,14 @@ func (c *Client) Do(req *http.Request, body any) (*Response, error) {
 
 	if body != nil {
 		switch contentType {
-		case "application/json", "application/json;charset=UTF-8", "application/json;charset=ISO-8859-1":
+		case "application/json", "application/json;charset=UTF-8", "application/json;charset=ISO-8859-1", "application/hal+json", "":
 			return doJson(resp, body)
 
 		case "text/xml":
 			return doXml(resp, body)
 
 		default:
-			return newResponse(resp, nil), fmt.Errorf("response header: 'Content-Type' contains unsupported value: %s", contentType)
+			return newResponse(resp, nil), fmt.Errorf("response header: 'Content-Type' contains unsupported value: '%s'", contentType)
 		}
 	}
 

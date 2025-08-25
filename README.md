@@ -80,9 +80,9 @@ func main() {
 | Development Sandbox | `v1` `latest` | sandbox | 🟢 | |
 | Healthcheck | `na` | | 🟢 | |
 | Upload (XML) |`v5` `latest`| |🟠| |
-| Policy | `v1` `latest`  | policy (incl. version) | 🔴 | 🔷 |
-|  |   | policy settings | 🔴 | 🔷 |
-|  |   | policy license | 🔴 | 🔷 |
+| Policy | `v1` `latest`  | policy (incl. version) | 🟢 |  |
+|  |   | policy settings | 🟢 |  |
+|  |   | policy license | 🟢 |  |
 | Annotations | `v2` `latest` |  | 🔴 |  |
 | DAST | `v1` `latest` |  | 🔴 |  |
 | DAST Essentials | `v1` `latest` |  | 🔴 |  |
@@ -186,13 +186,24 @@ func (c *Client) ListEntity(ctx context.Context, options EntityOptions) ([]Entit
 
 ## Release Notes
 
+### Version ```0.8.x```
+
+- Added Policy Version, Policy Settings and SCA License Information endpoints.
+- Improved error handling for different error response schemas.
+- Bug fixes.
+
 ### Version ```0.7.x```
+
+<details>
+<summary>See Details</summary>
 
 - Added XML handling for the XML APIs.
 - Added the ```getbuildinfo.do``` and ```getbuildlist.do``` endpoints.
 - Added the ```summary_report``` endpoint.
 - Bug fixes.
 - Updated the fields on the Application model.
+
+</details>
 
 ### Version ```0.6.0```
 
