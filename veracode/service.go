@@ -38,3 +38,8 @@ type HealthCheckService service
 //
 // For more information: https://docs.veracode.com/r/c_about_upload_API
 type UploadXMLService service
+
+// For more information:
+//  - https://docs.veracode.com/r/c_policy_rest_api
+//  - https://app.swaggerhub.com/apis/Veracode/veracode-policy_api_specification/1.0#/
+type PolicyService service
